@@ -41,7 +41,8 @@ create table if not exists public.messages (
 	content text not null,
 	project text not null,
 	timestamp timestamptz not null default timezone('utc'::text, now()),
-	embedding jsonb
+	embedding jsonb,
+	metadata jsonb
 );
 
 alter table public.messages enable row level security;
@@ -77,6 +78,12 @@ source .venv/bin/activate
 
 ```bash
 pip install -r requirements.txt
+```
+
+Run spaCy model download once:
+
+```bash
+python -m spacy download en_core_web_sm
 ```
 
 3. Start app

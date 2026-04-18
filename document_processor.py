@@ -1,6 +1,13 @@
+"""Document ingestion, chunking, embedding, retrieval, and Gemini answer generation utilities.
+
+Supabase migration (run once if metadata column does not exist):
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS metadata JSONB;
+"""
+
 import os
 import fitz  # PyMuPDF
 import json
+import spacy
 from supabase import create_client, Client
 import streamlit as st
 from sentence_transformers import SentenceTransformer
@@ -22,8 +29,17 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_API_KEY)
 # Initialize Sentence Transformer model
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# Function to process the uploaded document and create chunks
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    nlp = None
+
 def process_document(file, file_type):
+    """Parse an uploaded file and return sentence-aware chunk payloads with metadata."""
+    if nlp is None:
+        st.error("spaCy model 'en_core_web_sm' is missing. Run: python -m spacy download en_core_web_sm")
+        return []
+
     if file_type == "pdf":
         content = extract_text_from_pdf(file)
     else:
@@ -40,39 +56,113 @@ def process_document(file, file_type):
         st.warning("The uploaded file appears to be empty or unreadable.")
         return []
 
-    chunks = [content[i:i+500] for i in range(0, len(content), 500)]
+    sentence_chunks = chunk_text_by_sentences(content, target_words=400, overlap_ratio=0.12)
+    if not sentence_chunks:
+        return []
+
+    filename = getattr(file, "name", "uploaded_file")
+    total_chunks = len(sentence_chunks)
+
+    chunk_payloads = []
+    for idx, chunk_text in enumerate(sentence_chunks):
+        chunk_payloads.append({
+            "content": chunk_text,
+            "metadata": {
+                "filename": filename,
+                "chunk_index": idx,
+                "total_chunks": total_chunks,
+            },
+        })
+
+    return chunk_payloads
+
+
+def chunk_text_by_sentences(text, target_words=400, overlap_ratio=0.12):
+    """Split text on sentence boundaries, target ~400 words, with 10-15% sentence overlap."""
+    doc = nlp(text)
+    sentences = [sent.text.strip() for sent in doc.sents if sent.text and sent.text.strip()]
+    if not sentences:
+        return []
+
+    chunks = []
+    start_idx = 0
+    overlap_word_target = max(1, int(target_words * overlap_ratio))
+
+    while start_idx < len(sentences):
+        current_sentences = []
+        current_word_count = 0
+        end_idx = start_idx
+
+        while end_idx < len(sentences):
+            sentence = sentences[end_idx]
+            sentence_words = len(sentence.split())
+            if current_sentences and current_word_count >= target_words:
+                break
+
+            current_sentences.append(sentence)
+            current_word_count += sentence_words
+            end_idx += 1
+
+        if not current_sentences:
+            break
+
+        chunks.append(" ".join(current_sentences))
+
+        if end_idx >= len(sentences):
+            break
+
+        # Carry 1-2 trailing sentences into the next chunk, near 10-15% overlap.
+        overlap_count = 0
+        overlap_words = 0
+        for sentence in reversed(current_sentences):
+            if overlap_count >= 2:
+                break
+            overlap_words += len(sentence.split())
+            overlap_count += 1
+            if overlap_words >= overlap_word_target and overlap_count >= 1:
+                break
+
+        if len(current_sentences) == 1:
+            overlap_count = 0
+        else:
+            overlap_count = min(overlap_count, len(current_sentences) - 1)
+
+        start_idx = end_idx - overlap_count
+
     return chunks
 
-# Function to extract text from PDF
 def extract_text_from_pdf(file):
+    """Extract and concatenate text from all pages in an uploaded PDF."""
     doc = fitz.open(stream=file.read(), filetype="pdf")
     text = ""
     for page in doc:
         text += page.get_text()
     return text
 
-# Function to generate embeddings for chunks
-def generate_embeddings(chunks):
-    embeddings = model.encode(chunks)
+def generate_embeddings(chunk_payloads):
+    """Generate vector embeddings for chunk payload content in original order."""
+    texts = [chunk_payload["content"] for chunk_payload in chunk_payloads]
+    embeddings = model.encode(texts)
     return embeddings
 
-# Function to save chunks and embeddings to Supabase
-def save_chunks_to_supabase(chunks, embeddings, project_name):
+def save_chunks_to_supabase(chunk_payloads, embeddings, project_name):
+    """Persist chunk content, embedding, and metadata for a project in Supabase."""
     try:
-        for chunk, embedding in zip(chunks, embeddings):
+        for chunk_payload, embedding in zip(chunk_payloads, embeddings):
             supabase.table("messages").insert([{
                 "project": project_name,
                 "role": "document",
-                "content": chunk,
-                "embedding": embedding.tolist()
+                "content": chunk_payload["content"],
+                "embedding": embedding.tolist(),
+                "metadata": chunk_payload["metadata"],
             }]).execute()
         return True
     except Exception as e:
         st.error("Failed to save document chunks to Supabase. Please verify DB credentials and table permissions.")
         return False
 
-# File uploader for document upload
 def upload_document():
+    """Render sidebar uploader, process selected file, and store chunks+embeddings."""
     if "upload_uploader_version" not in st.session_state:
         st.session_state["upload_uploader_version"] = 0
 
@@ -86,18 +176,18 @@ def upload_document():
         with st.sidebar:
             with st.spinner("Processing document..."):
                 file_type = uploaded_file.name.split(".")[-1]
-                chunks = process_document(uploaded_file, file_type)
-                if chunks:
-                    embeddings = generate_embeddings(chunks)
-                    if save_chunks_to_supabase(chunks, embeddings, st.session_state["current_project"]):
+                chunk_payloads = process_document(uploaded_file, file_type)
+                if chunk_payloads:
+                    embeddings = generate_embeddings(chunk_payloads)
+                    if save_chunks_to_supabase(chunk_payloads, embeddings, st.session_state["current_project"]):
                         st.session_state["upload_notice"] = "Document uploaded and processed successfully."
                         st.session_state["upload_uploader_version"] += 1
                         st.rerun()
                 else:
                     st.sidebar.error("Document upload failed. Please check file format/content and try again.")
 
-# Function to retrieve relevant chunks from Supabase
 def retrieve_relevant_chunks(question, project_name):
+    """Retrieve top-k semantically similar document chunks for a question and project."""
     try:
         response = supabase.table("messages") \
             .select("role, content, embedding") \
@@ -133,8 +223,8 @@ def retrieve_relevant_chunks(question, project_name):
         st.error("Could not retrieve relevant document chunks. Please verify document embeddings and database state.")
         return []
 
-# Function to generate answer using Gemini API
 def generate_answer(question, relevant_chunks):
+    """Generate a grounded answer from Gemini using retrieved chunk context."""
     if not GEMINI_API_KEY:
         return "Error: Missing GEMINI_API_KEY in environment variables."
 
