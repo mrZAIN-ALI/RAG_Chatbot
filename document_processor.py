@@ -5,9 +5,11 @@ ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS metadata JSONB;
 """
 
 import os
+import logging
 import fitz  # PyMuPDF
 import json
 import spacy
+import google.generativeai as genai
 from supabase import create_client, Client
 import streamlit as st
 from sentence_transformers import SentenceTransformer, CrossEncoder
@@ -25,6 +27,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = "gemini-2.5-flash"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_API_KEY)
+logger = logging.getLogger(__name__)
 
 # Initialize Sentence Transformer model
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -36,8 +39,45 @@ except OSError:
     nlp = None
 
 
+def rewrite_query(query, conversation_history):
+    """Rewrite a query to be self-contained using recent conversation history via Gemini SDK.
+
+    Returns the original query unchanged if rewriting fails for any reason.
+    """
+    if not query:
+        return query
+
+    trimmed_history = (conversation_history or [])[-4:]
+    history_text = "\n".join(
+        [f"{item.get('role', 'user')}: {item.get('content', '')}" for item in trimmed_history]
+    ) or "No conversation history provided."
+
+    try:
+        if not GEMINI_API_KEY:
+            return query
+
+        genai.configure(api_key=GEMINI_API_KEY)
+        rewriter_model = genai.GenerativeModel(
+            model_name="gemini-2.5-flash",
+            system_instruction=(
+                "You are a query rewriter. Given a conversation history and a new "
+                "question, rewrite the question to be fully self-contained and "
+                "specific. Replace all pronouns with their referents. Return ONLY "
+                "the rewritten question, nothing else."
+            ),
+        )
+
+        response = rewriter_model.generate_content(
+            f"Conversation history:\n{history_text}\n\nNew question:\n{query}"
+        )
+        rewritten = (getattr(response, "text", "") or "").strip()
+        return rewritten if rewritten else query
+    except Exception:
+        return query
+
+
 def retrieve_and_rerank(query, project, supabase_client):
-    """Retrieve cosine candidates, rerank with cross-encoder, and return top reranked rows.
+    """Rewrite query, retrieve cosine candidates, rerank with cross-encoder, and return top rows.
 
     Returns a list of dicts with keys: content, initial_score, rerank_score.
     """
@@ -57,7 +97,25 @@ def retrieve_and_rerank(query, project, supabase_client):
     if not messages:
         return []
 
-    query_embedding = model.encode([query])[0]
+    history_response = supabase_client.table("messages") \
+        .select("role, content, timestamp") \
+        .eq("project", project) \
+        .order("timestamp", desc=True) \
+        .limit(20) \
+        .execute()
+
+    history_rows = history_response.data or []
+    conversation_history = [
+        {"role": row.get("role", "user"), "content": row.get("content", "")}
+        for row in history_rows
+        if row.get("role") in ("user", "assistant") and row.get("content")
+    ]
+    conversation_history = list(reversed(conversation_history[:4]))
+
+    rewritten_query = rewrite_query(query, conversation_history)
+    logging.debug("Query rewrite - original: %s | rewritten: %s", query, rewritten_query)
+
+    query_embedding = model.encode([rewritten_query])[0]
 
     cosine_candidates = []
     for msg in messages:
@@ -84,7 +142,7 @@ def retrieve_and_rerank(query, project, supabase_client):
     cosine_candidates.sort(key=lambda x: x["initial_score"], reverse=True)
     initial_top = cosine_candidates[:retrieval_top_k]
 
-    pair_inputs = [[query, candidate["content"]] for candidate in initial_top]
+    pair_inputs = [[rewritten_query, candidate["content"]] for candidate in initial_top]
     rerank_scores = cross_encoder_model.predict(pair_inputs)
 
     reranked = []

@@ -78,6 +78,98 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "test"
+		},
+		{
+			"label": "compile-m4-query-rewrite",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "install-google-generativeai-m4",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\pip.exe",
+			"args": [
+				"install",
+				"google-generativeai==0.8.5"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "compile-m4-final",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-m4-proof-script",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"_milestone4_acceptance_proof.py",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m4-acceptance-proof",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone4_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m4-proof-to-file",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone4_acceptance_proof.py",
+				">",
+				"_m4_proof_output.txt"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "show-m4-proof-file",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Get-Content -Path _m4_proof_output.txt"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
 		}
 	]
 }
