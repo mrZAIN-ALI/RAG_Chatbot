@@ -10,7 +10,7 @@ import json
 import spacy
 from supabase import create_client, Client
 import streamlit as st
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 import numpy as np
 import requests
 
@@ -28,11 +28,75 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_API_KEY)
 
 # Initialize Sentence Transformer model
 model = SentenceTransformer('all-MiniLM-L6-v2')
+cross_encoder_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
     nlp = None
+
+
+def retrieve_and_rerank(query, project, supabase_client):
+    """Retrieve cosine candidates, rerank with cross-encoder, and return top reranked rows.
+
+    Returns a list of dicts with keys: content, initial_score, rerank_score.
+    """
+    retrieval_top_k = int(os.getenv("RETRIEVAL_TOP_K", "20"))
+    rerank_top_n = int(os.getenv("RERANK_TOP_N", "5"))
+
+    # Keep rerank list bounded by available initial candidates.
+    retrieval_top_k = max(1, retrieval_top_k)
+    rerank_top_n = max(1, min(rerank_top_n, retrieval_top_k))
+
+    response = supabase_client.table("messages") \
+        .select("role, content, embedding") \
+        .eq("project", project) \
+        .execute()
+
+    messages = response.data or []
+    if not messages:
+        return []
+
+    query_embedding = model.encode([query])[0]
+
+    cosine_candidates = []
+    for msg in messages:
+        if msg.get("role") != "document" or msg.get("embedding") is None:
+            continue
+
+        embedding = np.array(msg["embedding"], dtype=float)
+        if embedding.size == 0:
+            continue
+
+        denominator = np.linalg.norm(query_embedding) * np.linalg.norm(embedding)
+        if denominator == 0:
+            continue
+
+        similarity = float(np.dot(query_embedding, embedding) / denominator)
+        cosine_candidates.append({
+            "content": msg.get("content", ""),
+            "initial_score": similarity,
+        })
+
+    if not cosine_candidates:
+        return []
+
+    cosine_candidates.sort(key=lambda x: x["initial_score"], reverse=True)
+    initial_top = cosine_candidates[:retrieval_top_k]
+
+    pair_inputs = [[query, candidate["content"]] for candidate in initial_top]
+    rerank_scores = cross_encoder_model.predict(pair_inputs)
+
+    reranked = []
+    for candidate, rerank_score in zip(initial_top, rerank_scores):
+        reranked.append({
+            "content": candidate["content"],
+            "initial_score": candidate["initial_score"],
+            "rerank_score": float(rerank_score),
+        })
+
+    reranked.sort(key=lambda x: x["rerank_score"], reverse=True)
+    return reranked[:rerank_top_n]
 
 def process_document(file, file_type):
     """Parse an uploaded file and return sentence-aware chunk payloads with metadata."""
@@ -187,44 +251,16 @@ def upload_document():
                     st.sidebar.error("Document upload failed. Please check file format/content and try again.")
 
 def retrieve_relevant_chunks(question, project_name):
-    """Retrieve top-k semantically similar document chunks for a question and project."""
+    """Retrieve reranked document chunk text for downstream answer generation."""
     try:
-        response = supabase.table("messages") \
-            .select("role, content, embedding") \
-            .eq("project", project_name) \
-            .execute()
-
-        messages = response.data
-        if not messages:
-            return []
-
-        # Generate embedding for the question
-        question_embedding = model.encode([question])[0]
-
-        # Calculate cosine similarity between question embedding and document embeddings
-        similarities = []
-        for msg in messages:
-            # Only compare against document rows that actually have embedding vectors
-            if msg.get("role") != "document" or msg.get("embedding") is None:
-                continue
-
-            embedding = np.array(msg["embedding"], dtype=float)
-            if embedding.size == 0:
-                continue
-
-            similarity = np.dot(question_embedding, embedding) / (np.linalg.norm(question_embedding) * np.linalg.norm(embedding))
-            similarities.append((similarity, msg["content"]))
-
-        # Sort by similarity and return the most relevant chunks
-        similarities.sort(reverse=True, key=lambda x: x[0])
-        relevant_chunks = [content for _, content in similarities[:5]]
-        return relevant_chunks
+        reranked_rows = retrieve_and_rerank(question, project_name, supabase)
+        return [row["content"] for row in reranked_rows]
     except Exception as e:
         st.error("Could not retrieve relevant document chunks. Please verify document embeddings and database state.")
         return []
 
-def generate_answer(question, relevant_chunks):
-    """Generate a grounded answer from Gemini using retrieved chunk context."""
+def generate_answer(question, relevant_chunks, recent_messages=None):
+    """Generate a grounded answer from Gemini using retrieved chunks and recent chat context."""
     if not GEMINI_API_KEY:
         return "Error: Missing GEMINI_API_KEY in environment variables."
 
@@ -232,9 +268,23 @@ def generate_answer(question, relevant_chunks):
         return "Error: No relevant document context found for this project. Upload a document and try again."
 
     context_text = "\n\n".join(relevant_chunks) if relevant_chunks else "No relevant context found."
+    conversation_context = ""
+    if recent_messages:
+        formatted_messages = []
+        for msg in recent_messages[-6:]:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if content:
+                formatted_messages.append(f"{role}: {content}")
+        conversation_context = "\n".join(formatted_messages)
+
     prompt = (
         "You are a helpful assistant. Use the provided context to answer the user's question. "
-        "If the answer is not in the context, say so clearly.\n\n"
+        "If the answer is not in the context, say so clearly. "
+        "Use recent conversation turns to resolve references like 'this', 'that', or 'it'. "
+        "Be specific and concrete: preserve exact numbers/units/examples from context when present. "
+        "Avoid vague wording and generic advice when concrete details exist.\n\n"
+        f"Recent Conversation:\n{conversation_context if conversation_context else 'No prior turns.'}\n\n"
         f"Context:\n{context_text}\n\n"
         f"Question:\n{question}"
     )

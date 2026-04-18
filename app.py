@@ -243,7 +243,8 @@ if st.session_state.get("current_project"):
                             "Upload a document after creating/selecting the project and try again."
                         )
                     else:
-                        response_text = generate_answer(user_input, relevant_chunks)
+                        recent_messages = st.session_state[history_key][-6:]
+                        response_text = generate_answer(user_input, relevant_chunks, recent_messages)
 
                     if response_text.startswith("Error:"):
                         st.error(response_text)

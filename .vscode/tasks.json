@@ -1,0 +1,83 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "milestone3-proof",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"_milestone3_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "milestone3-proof-venv",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone3_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "milestone3-compile-check",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-fixed-answer-path",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-after-prompt-revert",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-after-vague-fix",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		}
+	]
+}
