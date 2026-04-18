@@ -2,7 +2,7 @@ import streamlit as st
 from dotenv import load_dotenv
 import os
 from supabase import create_client, Client
-from document_processor import upload_document, retrieve_relevant_chunks, generate_answer  # Import the functions
+from document_processor import upload_document, retrieve_relevant_chunks, generate_answer, summarize_conversation  # Import the functions
 
 # Load environment variables from .env file
 load_dotenv()
@@ -10,6 +10,7 @@ load_dotenv()
 # Load API keys and URLs
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_API_KEY = os.getenv("SUPABASE_API_KEY")
+SUMMARY_THRESHOLD = int(os.getenv("SUMMARY_THRESHOLD", "10"))
 
 # Initialize Supabase client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_API_KEY)
@@ -243,8 +244,14 @@ if st.session_state.get("current_project"):
                             "Upload a document after creating/selecting the project and try again."
                         )
                     else:
-                        recent_messages = st.session_state[history_key][-6:]
-                        response_text = generate_answer(user_input, relevant_chunks, recent_messages)
+                        recent_messages = st.session_state[history_key]
+                        response_text = generate_answer(
+                            user_input,
+                            relevant_chunks,
+                            recent_messages,
+                            st.session_state["current_project"],
+                            supabase,
+                        )
 
                     if response_text.startswith("Error:"):
                         st.error(response_text)
@@ -253,12 +260,16 @@ if st.session_state.get("current_project"):
 
             st.session_state[history_key].append({"role": "assistant", "content": response_text})
             save_chat_history("assistant", response_text)
+            if len(st.session_state[history_key]) > SUMMARY_THRESHOLD:
+                summarize_conversation(st.session_state[history_key], st.session_state["current_project"], supabase)
         except Exception as e:
             response_text = f"Error: Unexpected failure while generating response: {e}"
             with st.chat_message("assistant"):
                 st.error(response_text)
             st.session_state[history_key].append({"role": "assistant", "content": response_text})
             save_chat_history("assistant", response_text)
+            if len(st.session_state[history_key]) > SUMMARY_THRESHOLD:
+                summarize_conversation(st.session_state[history_key], st.session_state["current_project"], supabase)
         finally:
             st.session_state["is_generating"] = False
 

@@ -170,6 +170,46 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "test"
+		},
+		{
+			"label": "compile-m5",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-m5-acceptance-proof",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"_milestone5_acceptance_proof.py",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m5-acceptance-proof",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone5_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
 		}
 	]
 }

@@ -39,6 +39,71 @@ except OSError:
     nlp = None
 
 
+def summarize_conversation(messages, project, supabase_client):
+    """Summarize conversation history, store it in Supabase, and return the summary string.
+
+    CREATE TABLE SQL (run once):
+    CREATE TABLE IF NOT EXISTS public.conversation_summaries (
+        project TEXT PRIMARY KEY,
+        summary TEXT NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+    );
+    """
+    if not messages:
+        return ""
+
+    conversation_text = "\n".join(
+        [f"{msg.get('role', 'user')}: {msg.get('content', '')}" for msg in messages if msg.get("content")]
+    )
+    if not conversation_text:
+        return ""
+
+    summary_prompt = (
+        "Summarize this conversation in 3-5 sentences preserving all key "
+        "facts, decisions, and entities mentioned.\n\n"
+        f"Conversation:\n{conversation_text}"
+    )
+
+    summary_api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    summary_text = ""
+    try:
+        response = requests.post(
+            f"{summary_api_url}?key={GEMINI_API_KEY}",
+            headers={"Content-Type": "application/json"},
+            json={
+                "contents": [{"parts": [{"text": summary_prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.2,
+                    "maxOutputTokens": 512,
+                },
+            },
+            timeout=60,
+        )
+
+        if response.status_code == 200:
+            payload = response.json()
+            candidates = payload.get("candidates", [])
+            parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
+            summary_text = "\n".join([part.get("text", "") for part in parts if part.get("text")]).strip()
+    except Exception:
+        summary_text = ""
+
+    if not summary_text:
+        return ""
+
+    try:
+        supabase_client.table("conversation_summaries").delete().eq("project", project).execute()
+        supabase_client.table("conversation_summaries").insert([{
+            "project": project,
+            "summary": summary_text,
+        }]).execute()
+    except Exception:
+        # Never break the main chat flow because of summary persistence issues.
+        pass
+
+    return summary_text
+
+
 def rewrite_query(query, conversation_history):
     """Rewrite a query to be self-contained using recent conversation history via Gemini SDK.
 
@@ -317,24 +382,46 @@ def retrieve_relevant_chunks(question, project_name):
         st.error("Could not retrieve relevant document chunks. Please verify document embeddings and database state.")
         return []
 
-def generate_answer(question, relevant_chunks, recent_messages=None):
-    """Generate a grounded answer from Gemini using retrieved chunks and recent chat context."""
+def generate_answer(question, relevant_chunks, recent_messages=None, project=None, supabase_client=None):
+    """Generate a grounded answer using summary context for long chats and full history for short chats."""
     if not GEMINI_API_KEY:
         return "Error: Missing GEMINI_API_KEY in environment variables."
 
     if not relevant_chunks:
         return "Error: No relevant document context found for this project. Upload a document and try again."
 
+    threshold_raw = os.getenv("SUMMARY_THRESHOLD", "10")
+    try:
+        summary_threshold = max(1, int(threshold_raw))
+    except ValueError:
+        summary_threshold = 10
+
+    active_supabase_client = supabase_client or supabase
     context_text = "\n\n".join(relevant_chunks) if relevant_chunks else "No relevant context found."
     conversation_context = ""
     if recent_messages:
-        formatted_messages = []
-        for msg in recent_messages[-6:]:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            if content:
-                formatted_messages.append(f"{role}: {content}")
-        conversation_context = "\n".join(formatted_messages)
+        if len(recent_messages) > summary_threshold and project:
+            try:
+                summary_response = active_supabase_client.table("conversation_summaries") \
+                    .select("summary") \
+                    .eq("project", project) \
+                    .order("updated_at", desc=True) \
+                    .limit(1) \
+                    .execute()
+                summary_rows = summary_response.data or []
+                if summary_rows and summary_rows[0].get("summary"):
+                    conversation_context = f"Conversation summary:\n{summary_rows[0]['summary']}"
+            except Exception:
+                conversation_context = ""
+
+        if not conversation_context:
+            formatted_messages = []
+            for msg in recent_messages:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+                if content:
+                    formatted_messages.append(f"{role}: {content}")
+            conversation_context = "\n".join(formatted_messages)
 
     prompt = (
         "You are a helpful assistant. Use the provided context to answer the user's question. "
