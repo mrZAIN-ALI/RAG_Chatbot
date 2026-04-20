@@ -1,0 +1,37 @@
+============================================================================================
+MILESTONE 6 ACCEPTANCE CHECKLIST PROOF
+============================================================================================
+
+[1] Confidence score computed from cross-encoder scores
+PASS: confidence=0.5000, expected=0.5000
+
+[2] Score normalized to 0.0-1.0
+PASS
+
+[3] low_confidence_queries table SQL provided in comments
+PASS
+
+[4] Low-confidence queries logged to Supabase
+PASS
+
+[5] Warning message prepended to answer when score < threshold
+PASS
+
+[6] Answer is always returned, never silently dropped
+PASS
+
+[7] Asking unrelated question triggers warning
+PASS
+
+[8] LOW_CONFIDENCE_THRESHOLD env var controls the cutoff
+PASS
+
+[9] App works end-to-end
+PASS
+
+[10] .env contains LOW_CONFIDENCE_THRESHOLD=0.25
+PASS
+
+============================================================================================
+ALL MILESTONE 6 CHECKLIST TESTS PASSED
+============================================================================================

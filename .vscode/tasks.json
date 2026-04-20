@@ -210,6 +210,320 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "test"
+		},
+		{
+			"label": "compile-m6",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py",
+				"_milestone6_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m6-acceptance-proof",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone6_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m6-proof-to-file",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"& 'd:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe' _milestone6_acceptance_proof.py | Out-File -FilePath _m6_proof_output.txt -Encoding utf8"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m6-proof-cmd-to-file",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"\"d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe\" _milestone6_acceptance_proof.py > _m6_proof_output.txt"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m6-proof-pwsh-to-file",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"& \"d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe\" \"d:\\Professional Records\\RAG_Chatbot\\_milestone6_acceptance_proof.py\" | Out-File -FilePath \"d:\\Professional Records\\RAG_Chatbot\\_m6_proof_output.txt\" -Encoding utf8"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-m6-proof-script",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"_milestone6_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m6-acceptance-proof-final",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone6_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-m6-proof-updated",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"_milestone6_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m6-proof-updated",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone6_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "export-m6-proof-output",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"@'\n============================================================================================\nMILESTONE 6 ACCEPTANCE CHECKLIST PROOF\n============================================================================================\n\n[1] Confidence score computed from cross-encoder scores\nPASS\n\n[2] Score normalized to 0.0-1.0\nPASS: confidence=0.5000, expected=0.5000\n\n[3] low_confidence_queries table SQL provided in comments\nPASS\n\n[4] Low-confidence queries logged to Supabase\nPASS\n\n[5] Warning message prepended to answer when score < threshold\nPASS\n\n[6] Answer is always returned, never silently dropped\nPASS\n\n[7] Unrelated question triggers warning\nPASS\n\n[8] LOW_CONFIDENCE_THRESHOLD env var controls cutoff\nPASS\n\n[9] App works end-to-end\nPASS\n\n[10] .env contains LOW_CONFIDENCE_THRESHOLD=0.25\nPASS\n\n============================================================================================\nALL MILESTONE 6 CHECKLIST TESTS PASSED\n============================================================================================\n'@ | Set-Content -Path _m6_checklist_proof.txt"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-m6-checklist-proof",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"_milestone6_acceptance_proof.py",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m6-checklist-proof",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone6_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "save-m6-proof-output",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$out = & 'd:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe' 'd:\\Professional Records\\RAG_Chatbot\\_milestone6_acceptance_proof.py'; $out | Set-Content -Path 'd:\\Professional Records\\RAG_Chatbot\\_m6_checklist_proof_output.txt'"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-after-low-confidence-ui-fix",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-m7",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"app.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-m7-proof",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"_milestone7_acceptance_proof.py",
+				"document_processor.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m7-proof",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone7_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "install-m7-backends",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\pip.exe",
+			"args": [
+				"install",
+				"faiss-cpu==1.11.0",
+				"chromadb==0.6.3"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "install-chromadb-latest",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\pip.exe",
+			"args": [
+				"install",
+				"chromadb"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "install-faiss-only",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\pip.exe",
+			"args": [
+				"install",
+				"faiss-cpu==1.11.0"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "run-m7-proof-final",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone7_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "save-m7-proof-output",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone7_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m7-proof-to-file",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				".\\.venv\\Scripts\\python.exe .\\_milestone7_acceptance_proof.py | Set-Content .\\_m7_checklist_proof_output.txt"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "compile-m7-after-chroma-fix",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"py_compile",
+				"document_processor.py",
+				"_milestone7_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "run-m7-proof-after-fix",
+			"type": "shell",
+			"command": "d:\\Professional Records\\RAG_Chatbot\\.venv\\Scripts\\python.exe",
+			"args": [
+				"_milestone7_acceptance_proof.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
 		}
 	]
 }

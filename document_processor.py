@@ -6,6 +6,9 @@ ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS metadata JSONB;
 
 import os
 import logging
+from abc import ABC, abstractmethod
+from pathlib import Path
+import uuid
 import fitz  # PyMuPDF
 import json
 import spacy
@@ -32,11 +35,201 @@ logger = logging.getLogger(__name__)
 # Initialize Sentence Transformer model
 model = SentenceTransformer('all-MiniLM-L6-v2')
 cross_encoder_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+LAST_RETRIEVAL_META = {"query": None, "project": None, "confidence": 1.0}
 
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
     nlp = None
+
+
+class VectorStore(ABC):
+    """Abstract interface for vector storage backends used by retrieval."""
+
+    @abstractmethod
+    def save_chunks(self, chunks, embeddings, metadata, project) -> None:
+        """Persist chunk texts, embeddings, and metadata for a project."""
+
+    @abstractmethod
+    def get_all_embeddings(self, project) -> list[dict]:
+        """Return all stored embedding rows for a project."""
+
+
+class SupabaseVectorStore(VectorStore):
+    """Vector store implementation backed by Supabase messages table."""
+
+    def __init__(self, supabase_client):
+        """Initialize Supabase vector store with an existing Supabase client."""
+        self.supabase_client = supabase_client
+
+    def save_chunks(self, chunks, embeddings, metadata, project) -> None:
+        """Save chunks and embeddings into Supabase using the existing document row schema."""
+        for chunk_text, embedding, chunk_metadata in zip(chunks, embeddings, metadata):
+            self.supabase_client.table("messages").insert([{
+                "project": project,
+                "role": "document",
+                "content": chunk_text,
+                "embedding": embedding.tolist() if hasattr(embedding, "tolist") else list(embedding),
+                "metadata": chunk_metadata,
+            }]).execute()
+
+    def get_all_embeddings(self, project) -> list[dict]:
+        """Fetch all message rows containing embeddings for a project from Supabase."""
+        response = self.supabase_client.table("messages") \
+            .select("role, content, embedding, metadata") \
+            .eq("project", project) \
+            .execute()
+        return response.data or []
+
+
+class FAISSVectorStore(VectorStore):
+    """Vector store implementation backed by local FAISS index files."""
+
+    def __init__(self):
+        """Initialize FAISS vector store with local persistence directory."""
+        self.base_dir = Path("./vector_stores")
+
+    def _project_dir(self, project: str) -> Path:
+        """Return local project directory for FAISS artifacts."""
+        return self.base_dir / project
+
+    def save_chunks(self, chunks, embeddings, metadata, project) -> None:
+        """Persist FAISS index and sidecar payload files for a project."""
+        try:
+            import faiss
+        except ImportError as exc:
+            raise RuntimeError("faiss-cpu is not installed. Please install dependencies.") from exc
+
+        project_dir = self._project_dir(project)
+        project_dir.mkdir(parents=True, exist_ok=True)
+
+        index_path = project_dir / "faiss.index"
+        docs_path = project_dir / "docs.json"
+        emb_path = project_dir / "embeddings.npy"
+
+        new_embeddings = np.array(embeddings, dtype=np.float32)
+        if new_embeddings.ndim == 1:
+            new_embeddings = new_embeddings.reshape(1, -1)
+
+        existing_docs = []
+        if docs_path.exists():
+            existing_docs = json.loads(docs_path.read_text(encoding="utf-8"))
+
+        existing_embeddings = np.empty((0, new_embeddings.shape[1]), dtype=np.float32)
+        if emb_path.exists():
+            existing_embeddings = np.load(emb_path)
+
+        combined_embeddings = np.vstack([existing_embeddings, new_embeddings])
+        np.save(emb_path, combined_embeddings)
+
+        for chunk_text, chunk_metadata in zip(chunks, metadata):
+            existing_docs.append({
+                "role": "document",
+                "content": chunk_text,
+                "metadata": chunk_metadata,
+            })
+        docs_path.write_text(json.dumps(existing_docs, ensure_ascii=True), encoding="utf-8")
+
+        index = faiss.IndexFlatL2(combined_embeddings.shape[1])
+        index.add(combined_embeddings)
+        faiss.write_index(index, str(index_path))
+
+    def get_all_embeddings(self, project) -> list[dict]:
+        """Load embeddings and associated document payloads for a project from local files."""
+        project_dir = self._project_dir(project)
+        docs_path = project_dir / "docs.json"
+        emb_path = project_dir / "embeddings.npy"
+
+        if not docs_path.exists() or not emb_path.exists():
+            return []
+
+        docs = json.loads(docs_path.read_text(encoding="utf-8"))
+        embeddings = np.load(emb_path)
+
+        rows = []
+        for idx, doc in enumerate(docs):
+            if idx >= len(embeddings):
+                break
+            rows.append({
+                "role": doc.get("role", "document"),
+                "content": doc.get("content", ""),
+                "embedding": embeddings[idx].tolist(),
+                "metadata": doc.get("metadata", {}),
+            })
+        return rows
+
+
+class ChromaVectorStore(VectorStore):
+    """Vector store implementation backed by local Chroma persistent collections."""
+
+    def __init__(self):
+        """Initialize Chroma vector store with local persistence directory."""
+        self.base_dir = Path("./vector_stores")
+
+    def _project_dir(self, project: str) -> Path:
+        """Return local project directory for Chroma persistence."""
+        return self.base_dir / project / "chroma"
+
+    def _get_collection(self, project: str):
+        """Create or fetch Chroma collection for a given project."""
+        try:
+            import chromadb
+        except ImportError as exc:
+            raise RuntimeError("chromadb is not installed. Please install dependencies.") from exc
+
+        path = self._project_dir(project)
+        path.mkdir(parents=True, exist_ok=True)
+        client = chromadb.PersistentClient(path=str(path))
+        return client.get_or_create_collection(name="documents")
+
+    def save_chunks(self, chunks, embeddings, metadata, project) -> None:
+        """Persist chunk vectors and metadata into project-scoped Chroma collection."""
+        collection = self._get_collection(project)
+        ids = [str(uuid.uuid4()) for _ in chunks]
+        metadatas = [md if isinstance(md, dict) else {} for md in metadata]
+        collection.add(
+            ids=ids,
+            documents=list(chunks),
+            embeddings=[emb.tolist() if hasattr(emb, "tolist") else list(emb) for emb in embeddings],
+            metadatas=metadatas,
+        )
+
+    def get_all_embeddings(self, project) -> list[dict]:
+        """Read all stored document embeddings and metadata from Chroma collection."""
+        collection = self._get_collection(project)
+        payload = collection.get(include=["documents", "embeddings", "metadatas"])
+
+        documents = payload.get("documents", [])
+        if documents is None:
+            documents = []
+
+        embeddings = payload.get("embeddings", [])
+        if embeddings is None:
+            embeddings = []
+
+        metadatas = payload.get("metadatas", [])
+        if metadatas is None:
+            metadatas = []
+
+        rows = []
+        for idx, doc in enumerate(documents):
+            rows.append({
+                "role": "document",
+                "content": doc,
+                "embedding": embeddings[idx] if idx < len(embeddings) else None,
+                "metadata": metadatas[idx] if idx < len(metadatas) else {},
+            })
+        return rows
+
+
+def get_vector_store(backend: str) -> VectorStore:
+    """Return the configured vector store backend, defaulting to Supabase."""
+    selected = (os.getenv("VECTOR_STORE_BACKEND", "supabase") or backend or "supabase").strip().lower()
+    if selected == "faiss":
+        return FAISSVectorStore()
+    if selected == "chroma":
+        return ChromaVectorStore()
+    return SupabaseVectorStore(supabase)
 
 
 def summarize_conversation(messages, project, supabase_client):
@@ -141,10 +334,35 @@ def rewrite_query(query, conversation_history):
         return query
 
 
-def retrieve_and_rerank(query, project, supabase_client):
-    """Rewrite query, retrieve cosine candidates, rerank with cross-encoder, and return top rows.
+def handle_low_confidence(query, score, project, supabase_client):
+    """Log a low-confidence query event to Supabase and return the user-facing warning message.
 
-    Returns a list of dicts with keys: content, initial_score, rerank_score.
+    CREATE TABLE SQL (run once):
+    CREATE TABLE IF NOT EXISTS public.low_confidence_queries (
+        id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+        project TEXT NOT NULL,
+        query TEXT NOT NULL,
+        score DOUBLE PRECISION NOT NULL,
+        timestamp TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+    );
+    """
+    try:
+        supabase_client.table("low_confidence_queries").insert([{
+            "project": project,
+            "query": query,
+            "score": float(score),
+        }]).execute()
+    except Exception:
+        # Logging failures must never break response generation.
+        pass
+
+    return "I'm not confident I found relevant information for this question. Here's my best attempt, but please verify: "
+
+
+def retrieve_and_rerank(query, project, supabase_client):
+    """Rewrite query, retrieve/rerank candidates, and attach normalized confidence score metadata.
+
+    Returns a list of dicts with keys: content, initial_score, rerank_score, confidence_score.
     """
     retrieval_top_k = int(os.getenv("RETRIEVAL_TOP_K", "20"))
     rerank_top_n = int(os.getenv("RERANK_TOP_N", "5"))
@@ -153,12 +371,8 @@ def retrieve_and_rerank(query, project, supabase_client):
     retrieval_top_k = max(1, retrieval_top_k)
     rerank_top_n = max(1, min(rerank_top_n, retrieval_top_k))
 
-    response = supabase_client.table("messages") \
-        .select("role, content, embedding") \
-        .eq("project", project) \
-        .execute()
-
-    messages = response.data or []
+    vector_store = get_vector_store(os.getenv("VECTOR_STORE_BACKEND", "supabase"))
+    messages = vector_store.get_all_embeddings(project)
     if not messages:
         return []
 
@@ -219,7 +433,23 @@ def retrieve_and_rerank(query, project, supabase_client):
         })
 
     reranked.sort(key=lambda x: x["rerank_score"], reverse=True)
-    return reranked[:rerank_top_n]
+    top_reranked = reranked[:rerank_top_n]
+
+    if top_reranked:
+        avg_top_score = float(np.mean([row["rerank_score"] for row in top_reranked]))
+        normalized_confidence = (avg_top_score - (-10.0)) / (10.0 - (-10.0))
+        normalized_confidence = max(0.0, min(1.0, normalized_confidence))
+    else:
+        normalized_confidence = 0.0
+
+    for row in top_reranked:
+        row["confidence_score"] = normalized_confidence
+
+    LAST_RETRIEVAL_META["query"] = query
+    LAST_RETRIEVAL_META["project"] = project
+    LAST_RETRIEVAL_META["confidence"] = normalized_confidence
+
+    return top_reranked
 
 def process_document(file, file_type):
     """Parse an uploaded file and return sentence-aware chunk payloads with metadata."""
@@ -333,19 +563,15 @@ def generate_embeddings(chunk_payloads):
     return embeddings
 
 def save_chunks_to_supabase(chunk_payloads, embeddings, project_name):
-    """Persist chunk content, embedding, and metadata for a project in Supabase."""
+    """Persist chunk content and embeddings via the configured VectorStore backend."""
     try:
-        for chunk_payload, embedding in zip(chunk_payloads, embeddings):
-            supabase.table("messages").insert([{
-                "project": project_name,
-                "role": "document",
-                "content": chunk_payload["content"],
-                "embedding": embedding.tolist(),
-                "metadata": chunk_payload["metadata"],
-            }]).execute()
+        vector_store = get_vector_store(os.getenv("VECTOR_STORE_BACKEND", "supabase"))
+        chunks = [chunk_payload["content"] for chunk_payload in chunk_payloads]
+        metadata = [chunk_payload.get("metadata", {}) for chunk_payload in chunk_payloads]
+        vector_store.save_chunks(chunks, embeddings, metadata, project_name)
         return True
     except Exception as e:
-        st.error("Failed to save document chunks to Supabase. Please verify DB credentials and table permissions.")
+        st.error("Failed to save document chunks to vector store. Please verify backend configuration.")
         return False
 
 def upload_document():
@@ -383,7 +609,7 @@ def retrieve_relevant_chunks(question, project_name):
         return []
 
 def generate_answer(question, relevant_chunks, recent_messages=None, project=None, supabase_client=None):
-    """Generate a grounded answer using summary context for long chats and full history for short chats."""
+    """Generate an answer, logging low-confidence events without showing warning text to the user."""
     if not GEMINI_API_KEY:
         return "Error: Missing GEMINI_API_KEY in environment variables."
 
@@ -397,6 +623,18 @@ def generate_answer(question, relevant_chunks, recent_messages=None, project=Non
         summary_threshold = 10
 
     active_supabase_client = supabase_client or supabase
+    threshold_raw_conf = os.getenv("LOW_CONFIDENCE_THRESHOLD", "0.25")
+    try:
+        low_conf_threshold = float(threshold_raw_conf)
+    except ValueError:
+        low_conf_threshold = 0.25
+
+    current_confidence = LAST_RETRIEVAL_META.get("confidence", 1.0)
+    meta_query = LAST_RETRIEVAL_META.get("query")
+    meta_project = LAST_RETRIEVAL_META.get("project")
+    if meta_query != question or (project is not None and meta_project != project):
+        current_confidence = 1.0
+
     context_text = "\n\n".join(relevant_chunks) if relevant_chunks else "No relevant context found."
     conversation_context = ""
     if recent_messages:
@@ -428,6 +666,7 @@ def generate_answer(question, relevant_chunks, recent_messages=None, project=Non
         "If the answer is not in the context, say so clearly. "
         "Use recent conversation turns to resolve references like 'this', 'that', or 'it'. "
         "Be specific and concrete: preserve exact numbers/units/examples from context when present. "
+        "If the user asks for a specific count (for example 10 questions), return the full requested count completely. "
         "Avoid vague wording and generic advice when concrete details exist.\n\n"
         f"Recent Conversation:\n{conversation_context if conversation_context else 'No prior turns.'}\n\n"
         f"Context:\n{context_text}\n\n"
@@ -441,8 +680,8 @@ def generate_answer(question, relevant_chunks, recent_messages=None, project=Non
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
-                    "temperature": 0.3,
-                    "maxOutputTokens": 1024
+                    "temperature": 0.2,
+                    "maxOutputTokens": 2048
                 }
             },
             timeout=60
@@ -457,7 +696,15 @@ def generate_answer(question, relevant_chunks, recent_messages=None, project=Non
             parts = candidates[0].get("content", {}).get("parts", [])
             text_parts = [part.get("text", "") for part in parts if part.get("text")]
             if text_parts:
-                return "\n".join(text_parts)
+                answer_text = "\n".join(text_parts)
+                if current_confidence < low_conf_threshold:
+                    handle_low_confidence(
+                        question,
+                        current_confidence,
+                        project or "unknown_project",
+                        active_supabase_client,
+                    )
+                return answer_text
             return "Error: Gemini returned an empty answer."
         else:
             error_message = "Gemini API request failed."
