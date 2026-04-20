@@ -1,4 +1,4 @@
-"""Document ingestion, chunking, embedding, retrieval, and Gemini answer generation utilities.
+"""Document ingestion, chunking, embedding, retrieval, and multi-provider answer generation utilities.
 
 Supabase migration (run once if metadata column does not exist):
 ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS metadata JSONB;
@@ -17,7 +17,6 @@ from supabase import create_client, Client
 import streamlit as st
 from sentence_transformers import SentenceTransformer, CrossEncoder
 import numpy as np
-import requests
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
@@ -27,8 +26,6 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_API_KEY = os.getenv("SUPABASE_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = "gemini-2.5-flash"
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_API_KEY)
 logger = logging.getLogger(__name__)
 
@@ -236,7 +233,7 @@ class GeminiProvider(LLMProvider):
     def __init__(self):
         """Initialize the Gemini provider."""
         self.api_key = os.getenv("GEMINI_API_KEY")
-        self.model_name = "gemini-2.5-flash"
+        self.model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
     def generate(self, system_prompt, context, query, history) -> str:
         """Generate an answer using Gemini chat completion."""
@@ -332,6 +329,25 @@ def get_llm_provider(provider: str) -> LLMProvider:
     return GeminiProvider()
 
 
+def get_active_llm_config() -> dict:
+    """Return the effective active LLM provider and model after fallback resolution."""
+    provider = (os.getenv("LLM_PROVIDER", "gemini") or "gemini").strip().lower()
+    if provider == "openai":
+        return {
+            "provider": "openai",
+            "model": os.getenv("OPENAI_MODEL", "gpt-4"),
+        }
+    if provider == "groq":
+        return {
+            "provider": "groq",
+            "model": os.getenv("GROQ_MODEL", "llama3-8b-8192"),
+        }
+    return {
+        "provider": "gemini",
+        "model": os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+    }
+
+
 def get_vector_store(backend: str) -> VectorStore:
     """Return the configured vector store backend, defaulting to Supabase."""
     selected = (os.getenv("VECTOR_STORE_BACKEND", "supabase") or backend or "supabase").strip().lower()
@@ -361,33 +377,20 @@ def summarize_conversation(messages, project, supabase_client):
     if not conversation_text:
         return ""
 
-    summary_prompt = (
-        "Summarize this conversation in 3-5 sentences preserving all key "
-        "facts, decisions, and entities mentioned.\n\n"
-        f"Conversation:\n{conversation_text}"
-    )
+    summary_prompt = "Summarize this conversation in 3-5 sentences preserving all key facts, decisions, and entities mentioned."
 
-    summary_api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
     summary_text = ""
     try:
-        response = requests.post(
-            f"{summary_api_url}?key={GEMINI_API_KEY}",
-            headers={"Content-Type": "application/json"},
-            json={
-                "contents": [{"parts": [{"text": summary_prompt}]}],
-                "generationConfig": {
-                    "temperature": 0.2,
-                    "maxOutputTokens": 512,
-                },
-            },
-            timeout=60,
+        active = get_active_llm_config()
+        summary_provider = get_llm_provider(active["provider"])
+        summary_text = summary_provider.generate(
+            system_prompt=(
+                "You are a conversation summarizer. Return only the concise summary text."
+            ),
+            context=f"Conversation:\n{conversation_text}",
+            query=summary_prompt,
+            history=[],
         )
-
-        if response.status_code == 200:
-            payload = response.json()
-            candidates = payload.get("candidates", [])
-            parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
-            summary_text = "\n".join([part.get("text", "") for part in parts if part.get("text")]).strip()
     except Exception:
         summary_text = ""
 
@@ -408,7 +411,7 @@ def summarize_conversation(messages, project, supabase_client):
 
 
 def rewrite_query(query, conversation_history):
-    """Rewrite a query to be self-contained using recent conversation history via Gemini SDK.
+    """Rewrite a query to be self-contained using the active LLM provider.
 
     Returns the original query unchanged if rewriting fails for any reason.
     """
@@ -421,24 +424,18 @@ def rewrite_query(query, conversation_history):
     ) or "No conversation history provided."
 
     try:
-        if not GEMINI_API_KEY:
-            return query
-
-        genai.configure(api_key=GEMINI_API_KEY)
-        rewriter_model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
-            system_instruction=(
-                "You are a query rewriter. Given a conversation history and a new "
-                "question, rewrite the question to be fully self-contained and "
-                "specific. Replace all pronouns with their referents. Return ONLY "
-                "the rewritten question, nothing else."
+        active = get_active_llm_config()
+        rewriter_provider = get_llm_provider(active["provider"])
+        rewritten = rewriter_provider.generate(
+            system_prompt=(
+                "You are a query rewriter. Given conversation history and a new question, "
+                "rewrite the question to be fully self-contained and specific. Replace "
+                "pronouns with referents. Return ONLY the rewritten question."
             ),
+            context=f"Conversation history:\n{history_text}",
+            query=query,
+            history=[],
         )
-
-        response = rewriter_model.generate_content(
-            f"Conversation history:\n{history_text}\n\nNew question:\n{query}"
-        )
-        rewritten = (getattr(response, "text", "") or "").strip()
         return rewritten if rewritten else query
     except Exception:
         return query

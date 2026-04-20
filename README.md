@@ -127,9 +127,10 @@ The system combines:
 ### 6.2 Provider and Backend Routing
 - LLM provider routing: get_llm_provider based on LLM_PROVIDER.
 - Vector backend routing: get_vector_store based on VECTOR_STORE_BACKEND.
+- Active provider/model visibility: chat window shows current provider and model at runtime.
 
 ### 6.3 Important Implementation Note
-Query rewriting and conversation summarization currently use Gemini API directly. Final answer generation uses the LLM provider abstraction.
+Answer generation, query rewriting, and conversation summarization all use the active provider selected by LLM_PROVIDER.
 
 ## 7. Data Model and Storage
 
@@ -267,6 +268,14 @@ streamlit run app.py
 Default URL:
 - http://localhost:8501
 
+If you see `ModuleNotFoundError: No module named 'supabase'`, start Streamlit from the project virtual environment instead of the global Python install:
+
+```bash
+.venv\Scripts\streamlit.exe run app.py
+```
+
+That ensures Streamlit uses the same dependency set installed in `.venv`.
+
 ## 11. User Workflow
 
 ### 11.1 First-Time Setup Workflow
@@ -283,6 +292,7 @@ Default URL:
 3. System generates grounded answer from selected provider.
 4. Chat turn is rendered and persisted.
 5. Summary and confidence logging run in background path as applicable.
+6. Chat window displays currently active provider and model.
 
 ## 12. Error Handling Behavior
 
@@ -299,7 +309,6 @@ These errors are displayed as user-readable messages rather than raw tracebacks.
 ## 13. Known Limitations
 
 - Non-PDF ingestion path treats uploads as text bytes. Native DOCX parsing is not currently implemented.
-- Query rewriting and summarization are Gemini-specific regardless of selected answer provider.
 - RLS and security hardening are deployment responsibilities and are not fully managed by the app itself.
 
 ## 14. Verification and Acceptance
@@ -314,3 +323,4 @@ To run milestone acceptance scripts, use the project virtual environment and exe
 - Use one value per environment key to avoid duplicate-key override confusion.
 - For production, add authenticated access, stricter Supabase RLS policies, audit logging, and secret management through a secure vault.
 
+This is working state and everythign works well

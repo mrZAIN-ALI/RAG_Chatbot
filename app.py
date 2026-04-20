@@ -2,7 +2,13 @@ import streamlit as st
 from dotenv import load_dotenv
 import os
 from supabase import create_client, Client
-from document_processor import upload_document, retrieve_relevant_chunks, generate_answer, summarize_conversation  # Import the functions
+from document_processor import (
+    upload_document,
+    retrieve_relevant_chunks,
+    generate_answer,
+    summarize_conversation,
+    get_active_llm_config,
+)  # Import the functions
 
 # Load environment variables from .env file
 load_dotenv()
@@ -204,9 +210,13 @@ else:
 st.markdown('<div class="main-title">RAG 2.0 Chat</div>', unsafe_allow_html=True)
 
 if st.session_state.get("current_project"):
+    llm_config = get_active_llm_config()
     st.markdown(
         f'<div class="subtitle">Project: {st.session_state["current_project"]}</div>',
         unsafe_allow_html=True,
+    )
+    st.caption(
+        f"Active LLM provider: {llm_config['provider']} | Model: {llm_config['model']}"
     )
 
     document_count = fetch_document_count(st.session_state["current_project"])
