@@ -1,0 +1,38 @@
+{
+  "name": "docmind-widget",
+  "version": "1.0.0",
+  "description": "Embeddable chat widget for DocMind RAG Chatbot",
+  "main": "widget.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:verbose": "jest --verbose"
+  },
+  "keywords": [
+    "widget",
+    "chat",
+    "embeddable",
+    "rag",
+    "docmind"
+  ],
+  "author": "DocMind",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.3.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "collectCoverageFrom": [
+      "widget.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 70,
+        "lines": 70,
+        "statements": 70
+      }
+    }
+  }
+}

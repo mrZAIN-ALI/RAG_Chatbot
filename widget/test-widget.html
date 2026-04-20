@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocMind Widget Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    .status-box {
+      background: #f0f4ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .status-box.success {
+      border-left-color: #10b981;
+      background: #f0fdf4;
+    }
+    .status-box.error {
+      border-left-color: #ef4444;
+      background: #fef2f2;
+    }
+    .instructions {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .instructions h3 {
+      margin-top: 0;
+      color: #d97706;
+    }
+    .test-item {
+      margin: 15px 0;
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .test-item:last-child {
+      border-bottom: none;
+    }
+    .test-item strong {
+      color: #667eea;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+      color: #d97706;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 DocMind Widget Acceptance Test</h1>
+    
+    <div class="status-box">
+      <strong>Test Date:</strong> April 20, 2026 (Milestone 2 Verification)<br>
+      <strong>Widget Version:</strong> 1.0.0<br>
+      <strong>API Endpoint:</strong> http://localhost:8000/api/chat<br>
+      <strong>Widget URL:</strong> http://localhost:8000/widget.js?id=test-project
+    </div>
+
+    <div class="instructions">
+      <h3>📋 Manual Testing Instructions</h3>
+      <ol>
+        <li><strong>Verify Floating Button:</strong> Look for a 💬 button in the bottom-right corner</li>
+        <li><strong>Open Panel:</strong> Click the floating button to open the chat panel</li>
+        <li><strong>Verify Layout:</strong> Panel should be 380×560px, centered on right side of screen</li>
+        <li><strong>Check Credentials:</strong> Provider, Model, and API Key fields should be visible</li>
+        <li><strong>Test Message:</strong> Fill in credentials and send a test message</li>
+        <li><strong>Verify Loading:</strong> Loading dots (•••) should appear during API call</li>
+        <li><strong>Check Collapse:</strong> Credential fields should collapse after first message</li>
+        <li><strong>Test Error:</strong> Try with invalid API key to see error message</li>
+        <li><strong>Inspect DOM:</strong> Right-click → Inspect → Verify all CSS classes use <code>.docmind-</code> prefix</li>
+        <li><strong>Browser DevTools:</strong> Open Console tab to check for any errors</li>
+      </ol>
+    </div>
+
+    <div style="margin-top: 30px;">
+      <h2>Acceptance Criteria Checklist</h2>
+      
+      <div class="test-item">
+        <strong>✓ npm test passes all Jest tests</strong><br>
+        <span style="color: #666; font-size: 14px;">Run: <code>cd widget && npm test</code></span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Widget loads on blank HTML with one script tag</strong><br>
+        <span style="color: #666; font-size: 14px;">Current: You are viewing this test file. Widget script loaded below.</span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Floating button appears bottom-right of host page</strong><br>
+        <span style="color: #666; font-size: 14px;">Status: <span id="button-status">Check bottom-right corner</span></span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Chat panel opens and closes correctly</strong><br>
+        <span style="color: #666; font-size: 14px;">Status: Click floating button to test</span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Provider/model/API key fields collapse after first message</strong><br>
+        <span style="color: #666; font-size: 14px;">Status: Send a message to verify collapse</span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Credentials persist in sessionStorage within same session</strong><br>
+        <span style="color: #666; font-size: 14px;">
+          <button onclick="checkSessionStorage()">Check sessionStorage</button>
+          <div id="storage-result" style="margin-top: 10px; display: none;"></div>
+        </span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Sending message calls correct FastAPI endpoint</strong><br>
+        <span style="color: #666; font-size: 14px;">
+          <button onclick="checkNetworkRequests()">Monitor Network Requests</button><br>
+          <span style="font-size: 12px; color: #999;">Open DevTools → Network tab to verify POST to /api/chat</span>
+          <div id="network-result" style="margin-top: 10px; display: none;"></div>
+        </span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Loading dots appear during API call</strong><br>
+        <span style="color: #666; font-size: 14px;">Status: Send a message and observe loading indicator</span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Error message shown on failed API call</strong><br>
+        <span style="color: #666; font-size: 14px;">
+          <button onclick="testErrorHandling()">Test Error Handling</button>
+          <div id="error-result" style="margin-top: 10px; display: none;"></div>
+        </span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ All CSS uses .docmind- prefix</strong><br>
+        <span style="color: #666; font-size: 14px;">
+          <button onclick="inspectCSSPrefix()">Verify CSS Classes</button>
+          <div id="css-result" style="margin-top: 10px; display: none;"></div>
+        </span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ No conflicts with Bootstrap, Tailwind, or plain CSS</strong><br>
+        <span style="color: #666; font-size: 14px;">Status: Widget should render correctly on this page</span>
+      </div>
+
+      <div class="test-item">
+        <strong>✓ Widget works in Chrome, Firefox, Safari</strong><br>
+        <span style="color: #666; font-size: 14px;">Current Browser: <span id="browser-name"></span></span>
+      </div>
+    </div>
+
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 14px;">
+      <p><strong>Notes:</strong></p>
+      <ul>
+        <li>Make sure FastAPI backend is running on http://localhost:8000</li>
+        <li>Provide valid Gemini/OpenAI/Groq API keys in the widget form</li>
+        <li>Check browser console (F12) for any error messages</li>
+        <li>The widget uses sessionStorage (not localStorage) for credential storage</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Configure widget with default settings -->
+  <script>
+    window.DocMindConfig = {
+      apiBase: "http://localhost:8000",
+      primaryColor: "#667eea"
+    };
+  </script>
+
+  <!-- Load the widget -->
+  <script src="http://localhost:8000/widget.js?id=test-project-milestone-2"></script>
+
+  <!-- Helper functions for testing -->
+  <script>
+    function checkSessionStorage() {
+      const projectId = "test-project-milestone-2";
+      const storageKey = `docmind_credentials_${projectId}`;
+      const stored = sessionStorage.getItem(storageKey);
+      
+      const resultDiv = document.getElementById('storage-result');
+      if (stored) {
+        const data = JSON.parse(stored);
+        resultDiv.innerHTML = `<span style="color: #10b981;"><strong>✓ Credentials found in sessionStorage:</strong><br>Provider: ${data.provider}<br>Model: ${data.model}<br>API Key: ${data.apiKey ? '(hidden)' : 'not set'}</span>`;
+        resultDiv.style.display = 'block';
+      } else {
+        resultDiv.innerHTML = `<span style="color: #f59e0b;"><strong>Note:</strong> No credentials in sessionStorage yet. Send a message to save them.</span>`;
+        resultDiv.style.display = 'block';
+      }
+    }
+
+    function checkNetworkRequests() {
+      const resultDiv = document.getElementById('network-result');
+      resultDiv.innerHTML = `<span style="color: #667eea;">Open DevTools (F12) → Network tab to see requests. Look for POST to <code>/api/chat</code></span>`;
+      resultDiv.style.display = 'block';
+    }
+
+    function testErrorHandling() {
+      const resultDiv = document.getElementById('error-result');
+      resultDiv.innerHTML = `<span style="color: #667eea;">Try entering an invalid API key and sending a message. An error message should appear in the widget.</span>`;
+      resultDiv.style.display = 'block';
+    }
+
+    function inspectCSSPrefix() {
+      const resultDiv = document.getElementById('css-result');
+      
+      // Get all elements with docmind class
+      const docmindElements = document.querySelectorAll('[class*="docmind"]');
+      
+      if (docmindElements.length === 0) {
+        resultDiv.innerHTML = `<span style="color: #ef4444;"><strong>✗ No elements with .docmind- prefix found</strong></span>`;
+      } else {
+        // Check if all classes use the prefix
+        let allPrefixed = true;
+        let classes = new Set();
+        
+        docmindElements.forEach(el => {
+          Array.from(el.classList).forEach(cls => {
+            if (cls.startsWith('docmind-') || cls === 'docmind') {
+              classes.add(cls);
+            } else {
+              allPrefixed = false;
+            }
+          });
+        });
+        
+        if (allPrefixed) {
+          resultDiv.innerHTML = `<span style="color: #10b981;"><strong>✓ All CSS classes use .docmind- prefix</strong><br>Found ${classes.size} unique classes: ${Array.from(classes).slice(0, 5).join(', ')}...</span>`;
+        } else {
+          resultDiv.innerHTML = `<span style="color: #ef4444;"><strong>✗ Some classes don't use .docmind- prefix</strong></span>`;
+        }
+      }
+      
+      resultDiv.style.display = 'block';
+    }
+
+    function detectBrowser() {
+      const ua = navigator.userAgent;
+      let browserName = 'Unknown';
+      
+      if (ua.indexOf('Firefox') > -1) {
+        browserName = 'Firefox';
+      } else if (ua.indexOf('Safari') > -1 && ua.indexOf('Chrome') === -1) {
+        browserName = 'Safari';
+      } else if (ua.indexOf('Chrome') > -1) {
+        browserName = 'Chrome';
+      } else if (ua.indexOf('Edge') > -1) {
+        browserName = 'Edge';
+      }
+      
+      document.getElementById('browser-name').textContent = browserName;
+    }
+
+    // Run detection on page load
+    detectBrowser();
+  </script>
+</body>
+</html>
