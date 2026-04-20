@@ -222,6 +222,116 @@ class ChromaVectorStore(VectorStore):
         return rows
 
 
+class LLMProvider(ABC):
+    """Abstract interface for configurable answer-generation providers."""
+
+    @abstractmethod
+    def generate(self, system_prompt, context, query, history) -> str:
+        """Generate a response using a system prompt, context, query, and history."""
+
+
+class GeminiProvider(LLMProvider):
+    """LLM provider that generates answers with Gemini."""
+
+    def __init__(self):
+        """Initialize the Gemini provider."""
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        self.model_name = "gemini-2.5-flash"
+
+    def generate(self, system_prompt, context, query, history) -> str:
+        """Generate an answer using Gemini chat completion."""
+        if not self.api_key:
+            raise RuntimeError("Missing GEMINI_API_KEY in environment variables.")
+
+        genai.configure(api_key=self.api_key)
+        model_client = genai.GenerativeModel(model_name=self.model_name, system_instruction=system_prompt)
+        formatted_history = "\n".join(
+            [f"{item.get('role', 'user')}: {item.get('content', '')}" for item in (history or []) if item.get("content")]
+        ) or "No prior turns."
+        prompt = f"Context:\n{context}\n\nConversation History:\n{formatted_history}\n\nQuestion:\n{query}"
+        response = model_client.generate_content(prompt)
+        answer_text = (getattr(response, "text", "") or "").strip()
+        if not answer_text:
+            raise RuntimeError("Gemini returned an empty answer.")
+        return answer_text
+
+
+class OpenAIProvider(LLMProvider):
+    """LLM provider that generates answers with OpenAI."""
+
+    def __init__(self):
+        """Initialize the OpenAI provider."""
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.model_name = os.getenv("OPENAI_MODEL", "gpt-4")
+
+    def generate(self, system_prompt, context, query, history) -> str:
+        """Generate an answer using the OpenAI SDK."""
+        if not self.api_key:
+            raise RuntimeError("Missing OPENAI_API_KEY in environment variables.")
+
+        try:
+            from openai import OpenAI
+        except ImportError as exc:
+            raise RuntimeError("openai package is not installed. Please install dependencies.") from exc
+
+        client = OpenAI(api_key=self.api_key)
+        messages = [{"role": "system", "content": system_prompt}]
+        for item in history or []:
+            role = item.get("role")
+            content = item.get("content", "")
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": f"Context:\n{context}\n\nQuestion:\n{query}"})
+        response = client.chat.completions.create(model=self.model_name, messages=messages)
+        answer_text = (response.choices[0].message.content or "").strip()
+        if not answer_text:
+            raise RuntimeError("OpenAI returned an empty answer.")
+        return answer_text
+
+
+class GroqProvider(LLMProvider):
+    """LLM provider that generates answers with Groq."""
+
+    def __init__(self):
+        """Initialize the Groq provider."""
+        self.api_key = os.getenv("GROQ_API_KEY")
+        self.model_name = os.getenv("GROQ_MODEL", "llama3-8b-8192")
+
+    def generate(self, system_prompt, context, query, history) -> str:
+        """Generate an answer using the Groq SDK."""
+        if not self.api_key:
+            raise RuntimeError("Missing GROQ_API_KEY in environment variables.")
+
+        try:
+            from groq import Groq
+        except ImportError as exc:
+            raise RuntimeError("groq package is not installed. Please install dependencies.") from exc
+
+        client = Groq(api_key=self.api_key)
+        messages = [{"role": "system", "content": system_prompt}]
+        for item in history or []:
+            role = item.get("role")
+            content = item.get("content", "")
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": f"Context:\n{context}\n\nQuestion:\n{query}"})
+        response = client.chat.completions.create(model=self.model_name, messages=messages)
+        answer_text = (response.choices[0].message.content or "").strip()
+        if not answer_text:
+            raise RuntimeError("Groq returned an empty answer.")
+        return answer_text
+
+
+def get_llm_provider(provider: str) -> LLMProvider:
+    """Return the LLM provider selected by the environment or supplied backend name."""
+    selected = (os.getenv("LLM_PROVIDER", provider or "gemini") or "gemini").strip().lower()
+    if selected == "openai":
+        return OpenAIProvider()
+    if selected == "groq":
+        return GroqProvider()
+    return GeminiProvider()
+
+
 def get_vector_store(backend: str) -> VectorStore:
     """Return the configured vector store backend, defaulting to Supabase."""
     selected = (os.getenv("VECTOR_STORE_BACKEND", "supabase") or backend or "supabase").strip().lower()
@@ -609,10 +719,7 @@ def retrieve_relevant_chunks(question, project_name):
         return []
 
 def generate_answer(question, relevant_chunks, recent_messages=None, project=None, supabase_client=None):
-    """Generate an answer, logging low-confidence events without showing warning text to the user."""
-    if not GEMINI_API_KEY:
-        return "Error: Missing GEMINI_API_KEY in environment variables."
-
+    """Generate an answer through the configured LLM provider."""
     if not relevant_chunks:
         return "Error: No relevant document context found for this project. Upload a document and try again."
 
@@ -636,91 +743,47 @@ def generate_answer(question, relevant_chunks, recent_messages=None, project=Non
         current_confidence = 1.0
 
     context_text = "\n\n".join(relevant_chunks) if relevant_chunks else "No relevant context found."
-    conversation_context = ""
-    if recent_messages:
-        if len(recent_messages) > summary_threshold and project:
-            try:
-                summary_response = active_supabase_client.table("conversation_summaries") \
-                    .select("summary") \
-                    .eq("project", project) \
-                    .order("updated_at", desc=True) \
-                    .limit(1) \
-                    .execute()
-                summary_rows = summary_response.data or []
-                if summary_rows and summary_rows[0].get("summary"):
-                    conversation_context = f"Conversation summary:\n{summary_rows[0]['summary']}"
-            except Exception:
-                conversation_context = ""
+    llm_context = context_text
+    history_for_llm = recent_messages or []
+    if recent_messages and len(recent_messages) > summary_threshold and project:
+        try:
+            summary_response = active_supabase_client.table("conversation_summaries") \
+                .select("summary") \
+                .eq("project", project) \
+                .order("updated_at", desc=True) \
+                .limit(1) \
+                .execute()
+            summary_rows = summary_response.data or []
+            if summary_rows and summary_rows[0].get("summary"):
+                llm_context = f"Conversation summary:\n{summary_rows[0]['summary']}\n\nDocument context:\n{context_text}"
+                history_for_llm = []
+        except Exception:
+            pass
 
-        if not conversation_context:
-            formatted_messages = []
-            for msg in recent_messages:
-                role = msg.get("role", "user")
-                content = msg.get("content", "")
-                if content:
-                    formatted_messages.append(f"{role}: {content}")
-            conversation_context = "\n".join(formatted_messages)
-
-    prompt = (
+    system_prompt = (
         "You are a helpful assistant. Use the provided context to answer the user's question. "
         "If the answer is not in the context, say so clearly. "
         "Use recent conversation turns to resolve references like 'this', 'that', or 'it'. "
         "Be specific and concrete: preserve exact numbers/units/examples from context when present. "
         "If the user asks for a specific count (for example 10 questions), return the full requested count completely. "
-        "Avoid vague wording and generic advice when concrete details exist.\n\n"
-        f"Recent Conversation:\n{conversation_context if conversation_context else 'No prior turns.'}\n\n"
-        f"Context:\n{context_text}\n\n"
-        f"Question:\n{question}"
+        "Avoid vague wording and generic advice when concrete details exist."
     )
 
+    provider = get_llm_provider(os.getenv("LLM_PROVIDER", "gemini"))
+
     try:
-        response = requests.post(
-            f"{API_URL}?key={GEMINI_API_KEY}",
-            headers={"Content-Type": "application/json"},
-            json={
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "temperature": 0.2,
-                    "maxOutputTokens": 2048
-                }
-            },
-            timeout=60
-        )
+        answer_text = provider.generate(system_prompt, llm_context, question, history_for_llm)
+        if not answer_text:
+            return "Error: LLM provider returned an empty answer."
 
-        if response.status_code == 200:
-            response_data = response.json()
-            candidates = response_data.get("candidates", [])
-            if not candidates:
-                return "Error: Gemini returned no answer candidates."
+        if current_confidence < low_conf_threshold:
+            handle_low_confidence(
+                question,
+                current_confidence,
+                project or "unknown_project",
+                active_supabase_client,
+            )
 
-            parts = candidates[0].get("content", {}).get("parts", [])
-            text_parts = [part.get("text", "") for part in parts if part.get("text")]
-            if text_parts:
-                answer_text = "\n".join(text_parts)
-                if current_confidence < low_conf_threshold:
-                    handle_low_confidence(
-                        question,
-                        current_confidence,
-                        project or "unknown_project",
-                        active_supabase_client,
-                    )
-                return answer_text
-            return "Error: Gemini returned an empty answer."
-        else:
-            error_message = "Gemini API request failed."
-            try:
-                payload = response.json()
-                error_message = payload.get("error", {}).get("message", error_message)
-            except (ValueError, json.JSONDecodeError):
-                pass
-
-            if response.status_code == 429:
-                return "Error: Gemini quota limit reached. Please check your Gemini billing/quota and retry in a few minutes."
-            if response.status_code in (401, 403):
-                return "Error: Gemini API key is invalid or does not have permission for this model."
-
-            return f"Error: {error_message}"
-    except requests.Timeout:
-        return "Error: Gemini request timed out. Please try again."
+        return answer_text
     except Exception as e:
-        return f"Error: Failed to call Gemini API: {e}"
+        return f"Error: Failed to generate answer: {e}"
