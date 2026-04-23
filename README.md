@@ -136,6 +136,18 @@ Answer generation, query rewriting, and conversation summarization all use the a
 
 ### 7.1 Required Tables
 
+#### project_config
+```sql
+create table if not exists public.project_config (
+	project_id text primary key,
+	name text not null,
+	description text,
+	tone text,
+	restrictions text,
+	created_at timestamptz default now()
+);
+```
+
 #### messages
 ```sql
 create table if not exists public.messages (
@@ -177,7 +189,7 @@ Use a policy configuration appropriate for your deployment. During local prototy
 
 ## 8. Configuration Requirements
 
-Create .env in repository root and provide values for the following:
+Copy `.env.example` to `.env` in the repository root, then fill `.env` with your real local configuration:
 
 ```env
 SUPABASE_URL=your_supabase_url
@@ -279,7 +291,7 @@ That ensures Streamlit uses the same dependency set installed in `.venv`.
 ## 11. User Workflow
 
 ### 11.1 First-Time Setup Workflow
-1. Configure environment values in .env.
+1. Copy `.env.example` to `.env` and configure real environment values in `.env`.
 2. Create required Supabase tables.
 3. Start the Streamlit app.
 4. Create a project in the sidebar.

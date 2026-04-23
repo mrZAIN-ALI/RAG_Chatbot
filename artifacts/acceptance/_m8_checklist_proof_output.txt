@@ -3,9 +3,6 @@ MILESTONE 8 CHECKLIST PROOF
 Root: D:\Professional Records\RAG_Chatbot
 Checked file: document_processor.py
 
-CONFIG WARNING: Duplicate keys found in .env (later entry overrides earlier):
-- GEMINI_API_KEY
-
 [PASS] LLMProvider abstract base class exists with documented interface
       Proof: class+docstrings+@abstractmethod verified in document_processor.py
 [PASS] All three providers implemented: Gemini, OpenAI, Groq
@@ -19,7 +16,7 @@ CONFIG WARNING: Duplicate keys found in .env (later entry overrides earlier):
 [FAIL] Switching LLM_PROVIDER=groq works end-to-end (with valid key)
       Proof: blocked: GROQ_API_KEY is placeholder/missing in .env
 [FAIL] All API keys in .env.example only, never hardcoded
-      Proof: failed: .env.example not found
+      Proof: failed: API keys are present in .env
 [FAIL] App works end-to-end on all three providers
       Proof: blocked: valid keys for all providers and live call verification are not satisfied
 

@@ -55,7 +55,6 @@
   const PROJECT_ID = getProjectIdFromScript();
   const API_BASE = getApiBase();
   const PRIMARY_COLOR = getPrimaryColor();
-  const STORAGE_KEY = `docmind_credentials_${PROJECT_ID}`;
 
   if (!PROJECT_ID) {
     console.error('DocMind Widget: project_id not found in script src. Use ?id=PROJECT_ID');
@@ -89,6 +88,7 @@
         color: white;
         transition: transform 0.2s, box-shadow 0.2s;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1;
       }
 
       .docmind-button:hover {
@@ -105,16 +105,19 @@
         position: fixed;
         bottom: 90px;
         right: 20px;
-        width: 380px;
-        height: 560px;
+        width: min(560px, calc(100vw - 32px));
+        height: min(760px, calc(100vh - 100px));
+        min-height: 520px;
         background-color: white;
-        border-radius: 12px;
-        box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
         display: none;
         flex-direction: column;
         z-index: 9998;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         color: #333;
+        overflow: hidden;
       }
 
       .docmind-panel.docmind-open {
@@ -128,8 +131,9 @@
         align-items: center;
         padding: 16px 20px;
         border-bottom: 1px solid #e5e7eb;
-        background-color: white;
-        border-radius: 12px 12px 0 0;
+        background-color: #ffffff;
+        border-radius: 10px 10px 0 0;
+        flex: 0 0 auto;
       }
 
       .docmind-header-title {
@@ -154,51 +158,10 @@
         color: #1f2937;
       }
 
-      /* Credentials Section */
-      .docmind-credentials {
-        padding: 12px 16px;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        background-color: #f9fafb;
-      }
-
-      .docmind-credentials.docmind-collapsed {
-        display: none;
-      }
-
-      .docmind-input-group {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .docmind-input-label {
-        font-size: 12px;
-        font-weight: 500;
-        color: #6b7280;
-        text-transform: uppercase;
-      }
-
-      .docmind-input-field {
-        padding: 8px 12px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-size: 13px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-
-      .docmind-input-field:focus {
-        border-color: ${PRIMARY_COLOR};
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-      }
-
       /* Messages Area */
       .docmind-messages {
         flex: 1;
+        min-height: 0;
         overflow-y: auto;
         padding: 16px;
         display: flex;
@@ -210,10 +173,10 @@
       .docmind-message {
         display: flex;
         margin-bottom: 4px;
-        animation: slideIn 0.3s ease-out;
+        animation: docmind-slide-in 0.3s ease-out;
       }
 
-      @keyframes slideIn {
+      @keyframes docmind-slide-in {
         from {
           opacity: 0;
           transform: translateY(10px);
@@ -233,21 +196,60 @@
       }
 
       .docmind-message-bubble {
-        max-width: 70%;
+        max-width: 84%;
         padding: 10px 14px;
         border-radius: 12px;
         word-wrap: break-word;
+        overflow-wrap: anywhere;
         font-size: 14px;
         line-height: 1.4;
       }
 
+      .docmind-message-bubble p {
+        margin: 0 0 8px;
+      }
+
+      .docmind-message-bubble p:last-child,
+      .docmind-message-bubble ul:last-child,
+      .docmind-message-bubble ol:last-child {
+        margin-bottom: 0;
+      }
+
+      .docmind-message-bubble ul,
+      .docmind-message-bubble ol {
+        margin: 0 0 8px 18px;
+        padding: 0;
+      }
+
+      .docmind-message-bubble li {
+        margin: 3px 0;
+      }
+
+      .docmind-message-bubble strong {
+        font-weight: 700;
+      }
+
+      .docmind-message-bubble em {
+        font-style: italic;
+      }
+
+      .docmind-message-bubble code {
+        border-radius: 4px;
+        background: rgba(15, 23, 42, 0.08);
+        padding: 1px 4px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.92em;
+      }
+
       .docmind-message.docmind-user .docmind-message-bubble {
+        max-width: 78%;
         background-color: ${PRIMARY_COLOR};
         color: white;
         border-bottom-right-radius: 4px;
       }
 
       .docmind-message.docmind-assistant .docmind-message-bubble {
+        max-width: 88%;
         background-color: #f3f4f6;
         color: #1f2937;
         border-bottom-left-radius: 4px;
@@ -304,15 +306,16 @@
       .docmind-input-row {
         display: flex;
         gap: 8px;
-        padding: 12px 16px;
+        padding: 14px 16px;
         border-top: 1px solid #e5e7eb;
         background-color: white;
-        border-radius: 0 0 12px 12px;
+        border-radius: 0 0 10px 10px;
+        flex: 0 0 auto;
       }
 
       .docmind-input-text {
         flex: 1;
-        padding: 10px 12px;
+        padding: 12px 12px;
         border: 1px solid #d1d5db;
         border-radius: 6px;
         font-size: 14px;
@@ -326,7 +329,8 @@
       }
 
       .docmind-send-button {
-        padding: 10px 16px;
+        min-width: 76px;
+        padding: 12px 18px;
         background-color: ${PRIMARY_COLOR};
         color: white;
         border: none;
@@ -345,6 +349,21 @@
       .docmind-send-button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+
+      @media (max-width: 420px), (max-height: 520px) {
+        .docmind-button {
+          bottom: 14px;
+          right: 14px;
+        }
+
+        .docmind-panel {
+          right: 14px;
+          bottom: 84px;
+          width: calc(100vw - 28px);
+          height: calc(100vh - 98px);
+          min-height: 0;
+        }
       }
 
       /* Scrollbar Styling */
@@ -376,7 +395,7 @@
     // Floating Button
     const button = document.createElement('button');
     button.className = 'docmind-button';
-    button.innerHTML = '💬';
+    button.textContent = 'DM';
     button.setAttribute('aria-label', 'Open DocMind Chat');
 
     // Chat Panel
@@ -388,28 +407,7 @@
     header.className = 'docmind-header';
     header.innerHTML = `
       <div class="docmind-header-title">DocMind Assistant</div>
-      <button class="docmind-close-button" aria-label="Close chat">✕</button>
-    `;
-
-    // Credentials Section
-    const credentials = document.createElement('div');
-    credentials.className = 'docmind-credentials';
-    credentials.innerHTML = `
-      <div class="docmind-input-group">
-        <label class="docmind-input-label">Provider</label>
-        <input type="text" class="docmind-input-field docmind-provider-input" 
-               placeholder="gemini/openai/groq" />
-      </div>
-      <div class="docmind-input-group">
-        <label class="docmind-input-label">Model</label>
-        <input type="text" class="docmind-input-field docmind-model-input" 
-               placeholder="e.g. gemini-2.0-flash" />
-      </div>
-      <div class="docmind-input-group">
-        <label class="docmind-input-label">API Key</label>
-        <input type="password" class="docmind-input-field docmind-apikey-input" 
-               placeholder="Your API key" />
-      </div>
+      <button class="docmind-close-button" aria-label="Close chat">x</button>
     `;
 
     // Messages Area
@@ -427,7 +425,6 @@
 
     // Assemble panel
     panel.appendChild(header);
-    panel.appendChild(credentials);
     panel.appendChild(messagesArea);
     panel.appendChild(inputRow);
 
@@ -438,15 +435,12 @@
     return {
       button,
       panel,
-      credentials,
       messagesArea,
       inputRow,
+      headerTitle: header.querySelector('.docmind-header-title'),
       closeButton: header.querySelector('.docmind-close-button'),
       sendButton: inputRow.querySelector('.docmind-send-button'),
       messageInput: inputRow.querySelector('.docmind-message-input'),
-      providerInput: credentials.querySelector('.docmind-provider-input'),
-      modelInput: credentials.querySelector('.docmind-model-input'),
-      apikeyInput: credentials.querySelector('.docmind-apikey-input'),
     };
   }
 
@@ -454,13 +448,91 @@
   // MESSAGE HANDLING
   // ============================================================================
 
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatInlineMarkdown(value) {
+    return escapeHtml(value)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>');
+  }
+
+  function normalizeMarkdown(content) {
+    return String(content)
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/\s+((?:[-*]|\d+\.)\s+(?=(?:\*\*)?[A-Za-z0-9(]))/g, '\n$1');
+  }
+
+  function markdownToHtml(content) {
+    const normalized = normalizeMarkdown(content);
+    const lines = normalized.split('\n');
+    const blocks = [];
+    let listItems = [];
+    let listType = 'ul';
+
+    function flushList(nextType) {
+      if (listItems.length > 0) {
+        blocks.push(`<${listType}>${listItems.map((item) => `<li>${item}</li>`).join('')}</${listType}>`);
+        listItems = [];
+      }
+      if (nextType) {
+        listType = nextType;
+      }
+    }
+
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        flushList();
+        return;
+      }
+
+      const bulletMatch = trimmed.match(/^[-*]\s+(.+)$/);
+      if (bulletMatch) {
+        if (listType !== 'ul') flushList('ul');
+        listType = 'ul';
+        listItems.push(formatInlineMarkdown(bulletMatch[1]));
+        return;
+      }
+
+      const orderedMatch = trimmed.match(/^\d+\.\s+(.+)$/);
+      if (orderedMatch) {
+        if (listType !== 'ol') flushList('ol');
+        listType = 'ol';
+        listItems.push(formatInlineMarkdown(orderedMatch[1]));
+        return;
+      }
+
+      const headingMatch = trimmed.match(/^#{1,4}\s+(.+)$/);
+      if (headingMatch) {
+        flushList();
+        blocks.push(`<p><strong>${formatInlineMarkdown(headingMatch[1])}</strong></p>`);
+        return;
+      }
+
+      flushList();
+      blocks.push(`<p>${formatInlineMarkdown(trimmed)}</p>`);
+    });
+
+    flushList();
+    return blocks.join('');
+  }
+
   function addMessage(content, role, isError = false) {
     const message = document.createElement('div');
     message.className = `docmind-message docmind-${role}${isError ? ' docmind-error' : ''}`;
 
     const bubble = document.createElement('div');
     bubble.className = 'docmind-message-bubble';
-    bubble.textContent = content;
+    bubble.innerHTML = role === 'assistant' ? markdownToHtml(content) : escapeHtml(content);
 
     message.appendChild(bubble);
     return message;
@@ -483,45 +555,101 @@
   }
 
   // ============================================================================
-  // CREDENTIALS MANAGEMENT
-  // ============================================================================
-
-  function loadCredentialsFromStorage() {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function saveCredentialsToStorage(provider, model, apiKey) {
-    try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ provider, model, apiKey }));
-    } catch (e) {
-      console.warn('Failed to save credentials to sessionStorage:', e);
-    }
-  }
-
-  // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
 
   function initializeWidget() {
     injectStyles();
     const elements = createWidget();
+    let widgetConfig = null;
+    let historyLoaded = false;
+    let historyLoading = false;
+    let configLoading = false;
 
-    // Load stored credentials
-    const stored = loadCredentialsFromStorage();
-    if (stored) {
-      elements.providerInput.value = stored.provider;
-      elements.modelInput.value = stored.model;
-      elements.apikeyInput.value = stored.apiKey;
+    function getWelcomeMessage() {
+      if (widgetConfig && widgetConfig.welcome_message) {
+        return widgetConfig.welcome_message;
+      }
+      return 'Welcome to this website. Ask me anything and I will help using the information provided by this organization.';
+    }
+
+    function renderWelcomeIfEmpty() {
+      if (elements.messagesArea.children.length === 0) {
+        elements.messagesArea.appendChild(addMessage(getWelcomeMessage(), 'assistant'));
+        autoScroll(elements.messagesArea);
+      }
+    }
+
+    async function loadWidgetConfig() {
+      if (widgetConfig || configLoading) return widgetConfig;
+
+      configLoading = true;
+      try {
+        const response = await fetch(`${API_BASE}/api/projects/${encodeURIComponent(PROJECT_ID)}/widget-config`);
+        if (!response.ok) return widgetConfig;
+
+        widgetConfig = await response.json();
+        if (widgetConfig && widgetConfig.name && elements.headerTitle) {
+          elements.headerTitle.textContent = `${widgetConfig.name} Assistant`;
+        }
+      } catch (error) {
+        // The widget can still chat without public config.
+      } finally {
+        configLoading = false;
+      }
+
+      return widgetConfig;
+    }
+
+    async function loadHistory() {
+      if (historyLoaded || historyLoading || elements.messagesArea.children.length > 0) return;
+
+      historyLoading = true;
+      try {
+        await loadWidgetConfig();
+        const response = await fetch(`${API_BASE}/api/history/${encodeURIComponent(PROJECT_ID)}`);
+        if (!response.ok) {
+          renderWelcomeIfEmpty();
+          return;
+        }
+
+        const history = await response.json();
+        if (!Array.isArray(history)) {
+          renderWelcomeIfEmpty();
+          return;
+        }
+
+        if (elements.messagesArea.children.length > 0) {
+          historyLoaded = true;
+          return;
+        }
+
+        let appended = 0;
+        history
+          .filter((item) => item && (item.role === 'user' || item.role === 'assistant') && item.content)
+          .forEach((item) => {
+            elements.messagesArea.appendChild(addMessage(item.content, item.role));
+            appended += 1;
+          });
+
+        if (appended === 0) {
+          renderWelcomeIfEmpty();
+        }
+        historyLoaded = true;
+        autoScroll(elements.messagesArea);
+      } catch (error) {
+        // History is helpful but not required for a new chat turn.
+        renderWelcomeIfEmpty();
+      } finally {
+        historyLoading = false;
+      }
     }
 
     // Toggle panel open/close
     elements.button.addEventListener('click', () => {
       elements.panel.classList.add('docmind-open');
+      loadHistory();
+      setTimeout(() => elements.messageInput.focus(), 0);
     });
 
     elements.closeButton.addEventListener('click', () => {
@@ -531,23 +659,8 @@
     // Send message handler
     async function sendMessage() {
       const message = elements.messageInput.value.trim();
-      const provider = elements.providerInput.value.trim();
-      const model = elements.modelInput.value.trim();
-      const apiKey = elements.apikeyInput.value.trim();
 
       if (!message) return;
-
-      // Validate credentials
-      if (!provider || !model || !apiKey) {
-        elements.messagesArea.appendChild(
-          addMessage('Please fill in all credentials (provider, model, API key).', 'assistant', true)
-        );
-        autoScroll(elements.messagesArea);
-        return;
-      }
-
-      // Save credentials for future use
-      saveCredentialsToStorage(provider, model, apiKey);
 
       // Add user message
       elements.messagesArea.appendChild(addMessage(message, 'user'));
@@ -559,9 +672,6 @@
       elements.messagesArea.appendChild(loadingMessage);
       autoScroll(elements.messagesArea);
 
-      // Collapse credentials section after first successful message
-      elements.credentials.classList.add('docmind-collapsed');
-
       try {
         // Send to API
         const response = await fetch(`${API_BASE}/api/chat`, {
@@ -570,9 +680,6 @@
           body: JSON.stringify({
             project_id: PROJECT_ID,
             message,
-            provider,
-            model,
-            api_key: apiKey,
           }),
         });
 
@@ -580,7 +687,14 @@
         loadingMessage.remove();
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          let detail = '';
+          try {
+            const errorData = await response.json();
+            detail = errorData && errorData.detail ? String(errorData.detail) : '';
+          } catch (parseError) {
+            detail = '';
+          }
+          throw new Error(detail || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
@@ -592,7 +706,16 @@
         loadingMessage.remove();
 
         // Show error message
-        const errorMsg = 'Something went wrong. Please check your API key and model name.';
+        let errorMsg = 'Something went wrong. Please check the chatbot setup and try again.';
+        if (error && error.message) {
+          if (error.message.includes('API_KEY_INVALID') || error.message.includes('API key not valid')) {
+            errorMsg = 'The Gemini API key was rejected. Paste a valid key from Google AI Studio and try again.';
+          } else if (error.message.includes('quota') || error.message.includes('RESOURCE_EXHAUSTED')) {
+            errorMsg = 'The provider quota or rate limit was reached. Try again later or use another key.';
+          } else if (error.message.includes('model')) {
+            errorMsg = 'The provider rejected the configured model name. Check the chatbot setup and try again.';
+          }
+        }
         elements.messagesArea.appendChild(addMessage(errorMsg, 'assistant', true));
       } finally {
         elements.sendButton.disabled = false;

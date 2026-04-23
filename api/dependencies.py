@@ -6,13 +6,15 @@ environment variable loading, and dependency injection.
 import os
 from typing import Optional
 from functools import lru_cache
+from pathlib import Path
 
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
 
-# Load environment variables from .env file
-load_dotenv()
+# Load secrets from the local runtime environment file.
+ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(ENV_FILE)
 
 
 @lru_cache(maxsize=1)

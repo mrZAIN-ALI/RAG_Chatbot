@@ -1,0 +1,80 @@
+[
+  {
+    "project_id": "8b249059-2883-4fbb-891c-7f213110e0e3",
+    "name": "Cuba",
+    "description": "",
+    "tone": "Professional",
+    "restrictions": "",
+    "provider": "gemini",
+    "model": "gemini-2.5-flash",
+    "api_key": "AIzaSyDy69L6jV62MpGKGN7AjiPtKL-DqCpRFjk",
+    "created_at": "2026-04-23T10:29:25.851796"
+  },
+  {
+    "project_id": "5305acff-cb3a-4506-b572-81eded4a250c",
+    "name": "Support Assis",
+    "description": "",
+    "tone": "Professional",
+    "restrictions": "",
+    "provider": "gemini",
+    "model": "gemini-2.5-flash",
+    "api_key": "AIzaSyDy69L6jV62MpGKGN7AjiPtKL-DqCpRFjk",
+    "created_at": "2026-04-22T19:59:37.909503"
+  },
+  {
+    "project_id": "6250b5c3-5965-47f7-bcb9-6d93b6de944f",
+    "name": "ResumeDetails",
+    "description": "This explains the Professional deails",
+    "tone": "Professional",
+    "restrictions": "Attestation",
+    "created_at": "2026-04-21T09:24:13.022208"
+  },
+  {
+    "project_id": "e836f2d6-e68f-4dce-b9d8-8c3fb9c8adc4",
+    "name": "Aibot",
+    "description": "This is lab for providing xray reports",
+    "tone": "Professional",
+    "restrictions": "Death",
+    "created_at": "2026-04-21T09:20:43.264863"
+  },
+  {
+    "project_id": "641ede96-e068-44f3-9af7-0d344140f71b",
+    "name": "sdsds",
+    "description": "sdsds",
+    "tone": "Professional",
+    "restrictions": "sds",
+    "created_at": "2026-04-21T09:20:16.524708"
+  },
+  {
+    "project_id": "2e8ea226-7992-422b-af00-67c2d5dbed91",
+    "name": "Button Endpoint Check",
+    "description": "",
+    "tone": "Professional",
+    "restrictions": "",
+    "created_at": "2026-04-21T09:16:25.925657"
+  },
+  {
+    "project_id": "5635c41d-f6de-4fed-bba2-c37d17dd973b",
+    "name": "Final Continue Test",
+    "description": "",
+    "tone": "Professional",
+    "restrictions": "",
+    "created_at": "2026-04-21T09:08:48.802241"
+  },
+  {
+    "project_id": "079faf9b-254b-4b12-a048-a1e3dd766e06",
+    "name": "Frontend Compiled Backend Test",
+    "description": "",
+    "tone": "Professional",
+    "restrictions": "",
+    "created_at": "2026-04-21T09:03:48.746970"
+  },
+  {
+    "project_id": "78189270-6daf-4c8e-b2a1-022b0fc952af",
+    "name": "Button Test",
+    "description": "",
+    "tone": "Professional",
+    "restrictions": "",
+    "created_at": "2026-04-21T09:03:37.471349"
+  }
+]

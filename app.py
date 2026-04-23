@@ -1,6 +1,7 @@
 import streamlit as st
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 from supabase import create_client, Client
 from document_processor import (
     upload_document,
@@ -10,8 +11,8 @@ from document_processor import (
     get_active_llm_config,
 )  # Import the functions
 
-# Load environment variables from .env file
-load_dotenv()
+# Load the single repository config file.
+load_dotenv(Path(__file__).resolve().with_name(".env"))
 
 # Load API keys and URLs
 SUPABASE_URL = os.getenv("SUPABASE_URL")

@@ -17,6 +17,9 @@ class CreateProjectRequest(BaseModel):
     description: Optional[str] = Field(None, description="Project description")
     tone: Optional[str] = Field(None, description="Chatbot tone/personality")
     restrictions: Optional[str] = Field(None, description="Content restrictions")
+    provider: Optional[str] = Field(default="gemini", description="LLM provider")
+    model: Optional[str] = Field(default="gemini-2.5-flash", description="LLM model name")
+    api_key: Optional[str] = Field(None, description="Provider API key")
 
 
 class CreateProjectResponse(BaseModel):
@@ -30,7 +33,18 @@ class ProjectInfo(BaseModel):
     project_id: str = Field(..., description="Unique project identifier")
     name: str = Field(..., description="Project name")
     description: Optional[str] = Field(None, description="Project description")
-    created_at: Optional[str] = Field(None, description="ISO 8601 timestamp")
+
+
+class WidgetConfigResponse(BaseModel):
+    """Public widget configuration for a project."""
+    project_id: str = Field(..., description="Unique project identifier")
+    name: str = Field(..., description="Project name")
+    description: Optional[str] = Field(None, description="Project description")
+    tone: Optional[str] = Field(None, description="Chatbot tone/personality")
+    restrictions: Optional[str] = Field(None, description="Content restrictions")
+    provider: Optional[str] = Field(None, description="Configured LLM provider")
+    model: Optional[str] = Field(None, description="Configured model name")
+    welcome_message: str = Field(..., description="Initial widget welcome message")
 
 
 class GetProjectsResponse(BaseModel):
@@ -61,9 +75,9 @@ class ChatRequest(BaseModel):
     """Request body for POST /api/chat."""
     project_id: str = Field(..., description="Target project ID")
     message: str = Field(..., min_length=1, description="User message/query")
-    provider: str = Field(default="gemini", description="LLM provider (gemini/openai/groq)")
+    provider: Optional[str] = Field(None, description="LLM provider (gemini/openai/groq)")
     model: Optional[str] = Field(None, description="Model override (optional)")
-    api_key: str = Field(..., description="API key for the selected provider")
+    api_key: Optional[str] = Field(None, description="API key for the selected provider")
 
 
 class ChatResponse(BaseModel):

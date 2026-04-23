@@ -9,8 +9,11 @@ import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 import uuid
+import io
 import fitz  # PyMuPDF
 import json
+import zipfile
+import xml.etree.ElementTree as ET
 import spacy
 import google.generativeai as genai
 from supabase import create_client, Client
@@ -18,9 +21,9 @@ import streamlit as st
 from sentence_transformers import SentenceTransformer, CrossEncoder
 import numpy as np
 
-# Load environment variables from .env file
+# Load the single repository config file.
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(Path(__file__).resolve().with_name(".env"))
 
 # Initialize Supabase client
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -566,6 +569,12 @@ def process_document(file, file_type):
 
     if file_type == "pdf":
         content = extract_text_from_pdf(file)
+    elif file_type == "docx":
+        try:
+            content = extract_text_from_docx(file)
+        except Exception:
+            st.error("Could not read the uploaded DOCX file. Please verify the file and try again.")
+            return []
     else:
         try:
             content = file.read().decode("utf-8")
@@ -663,11 +672,47 @@ def extract_text_from_pdf(file):
         text += page.get_text()
     return text
 
+def extract_text_from_docx(file):
+    """Extract paragraph text from a DOCX file using the standard library."""
+    with zipfile.ZipFile(file) as docx:
+        xml_content = docx.read("word/document.xml")
+
+    root = ET.fromstring(xml_content)
+    namespace = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    paragraphs = []
+    for paragraph in root.findall(".//w:p", namespace):
+        text_parts = [node.text for node in paragraph.findall(".//w:t", namespace) if node.text]
+        if text_parts:
+            paragraphs.append("".join(text_parts))
+    return "\n".join(paragraphs)
+
 def generate_embeddings(chunk_payloads):
     """Generate vector embeddings for chunk payload content in original order."""
     texts = [chunk_payload["content"] for chunk_payload in chunk_payloads]
     embeddings = model.encode(texts)
     return embeddings
+
+def upload_document_for_api(file_contents, project_id, filename="uploaded_file"):
+    """Process an API-uploaded document and persist its chunks."""
+    if nlp is None:
+        raise RuntimeError("spaCy model 'en_core_web_sm' is missing. Run: python -m spacy download en_core_web_sm")
+
+    file_type = Path(filename).suffix.lower().lstrip(".")
+    if file_type not in {"pdf", "txt", "docx"}:
+        raise RuntimeError("Unsupported file type. Upload a PDF, TXT, or DOCX file.")
+
+    file_obj = io.BytesIO(file_contents)
+    file_obj.name = filename
+    chunk_payloads = process_document(file_obj, file_type)
+    if not chunk_payloads:
+        raise RuntimeError("No readable text was found in the uploaded document.")
+
+    embeddings = generate_embeddings(chunk_payloads)
+    vector_store = get_vector_store(os.getenv("VECTOR_STORE_BACKEND", "supabase"))
+    chunks = [chunk_payload["content"] for chunk_payload in chunk_payloads]
+    metadata = [chunk_payload.get("metadata", {}) for chunk_payload in chunk_payloads]
+    vector_store.save_chunks(chunks, embeddings, metadata, project_id)
+    return {"chunks_stored": len(chunk_payloads)}
 
 def save_chunks_to_supabase(chunk_payloads, embeddings, project_name):
     """Persist chunk content and embeddings via the configured VectorStore backend."""
@@ -773,14 +818,15 @@ def generate_answer(question, relevant_chunks, recent_messages=None, project=Non
         if not answer_text:
             return "Error: LLM provider returned an empty answer."
 
+        warning_prefix = ""
         if current_confidence < low_conf_threshold:
-            handle_low_confidence(
+            warning_prefix = handle_low_confidence(
                 question,
                 current_confidence,
                 project or "unknown_project",
                 active_supabase_client,
             )
 
-        return answer_text
+        return f"{warning_prefix}{answer_text}"
     except Exception as e:
         return f"Error: Failed to generate answer: {e}"
