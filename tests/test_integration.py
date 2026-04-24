@@ -61,12 +61,25 @@ def _resolve_api_base() -> str:
 API_BASE = _resolve_api_base()
 
 
+def _is_configured_secret(value: str | None) -> bool:
+    """Return whether an env value looks like a real credential instead of a placeholder."""
+    if not value:
+        return False
+
+    lowered = value.strip().lower()
+    placeholder_tokens = ("your_", "placeholder", "changeme", "replace", "example")
+    if any(token in lowered for token in placeholder_tokens):
+        return False
+
+    return len(value.strip()) >= 20
+
+
 def _provider_config(provider: str) -> dict[str, str] | None:
     """Return provider credentials/model from the runtime environment if available."""
     normalized = provider.lower()
     if normalized == "gemini":
         api_key = RUNTIME_ENV.get("GEMINI_API_KEY")
-        if not api_key:
+        if not _is_configured_secret(api_key):
             return None
         return {
             "provider": "gemini",
@@ -76,7 +89,7 @@ def _provider_config(provider: str) -> dict[str, str] | None:
 
     if normalized == "groq":
         api_key = RUNTIME_ENV.get("GROQ_API_KEY")
-        if not api_key:
+        if not _is_configured_secret(api_key):
             return None
         return {
             "provider": "groq",
@@ -182,12 +195,13 @@ async def test_full_rag_flow() -> None:
             delete_response = await client.delete(f"/api/projects/{project_id}")
             delete_response.raise_for_status()
             assert delete_response.json()["deleted"] is True
+            deleted_project_id = project_id
             project_id = None
 
             projects_response = await client.get("/api/projects")
             projects_response.raise_for_status()
             projects = projects_response.json()
-            assert all(item["project_id"] != project_id for item in projects)
+            assert all(item["project_id"] != deleted_project_id for item in projects)
         finally:
             if project_id:
                 await _delete_project(client, project_id)
@@ -234,7 +248,7 @@ async def test_multiple_providers(provider_name: str, api_key_env: str) -> None:
     """Run one real chat turn for each provider key available in the runtime environment."""
     await _assert_backend_available()
     llm_config = _provider_config(provider_name)
-    if llm_config is None or not RUNTIME_ENV.get(api_key_env):
+    if llm_config is None or not _is_configured_secret(RUNTIME_ENV.get(api_key_env)):
         pytest.skip(f"{provider_name} is not configured in .env")
 
     project_id: str | None = None

@@ -67,7 +67,7 @@ export default function StepOne({ onCreated }: StepOneProps) {
     <Card>
       <CardHeader>
         <CardTitle>Step 1 - Describe Your Bot</CardTitle>
-        <CardDescription>Define your bot's identity and boundaries before uploading documents.</CardDescription>
+        <CardDescription>Define your bot&apos;s identity and boundaries before uploading documents.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">

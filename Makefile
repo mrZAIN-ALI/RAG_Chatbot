@@ -1,4 +1,4 @@
-.PHONY: test-unit test-widget test-frontend test-e2e test-widget-e2e test-all start-api start-web
+.PHONY: test-unit test-widget test-frontend test-e2e test-widget-e2e test-stack test-all start-api start-web
 
 PYTHON ?= python
 
@@ -17,7 +17,10 @@ test-e2e:
 test-widget-e2e:
 	npx playwright test tests/test_widget_integration.js
 
-test-all: test-unit test-widget test-frontend test-e2e test-widget-e2e
+test-stack:
+	$(PYTHON) tests/run_full_stack_tests.py
+
+test-all: test-unit test-widget test-frontend test-stack
 
 start-api:
 	$(PYTHON) -m uvicorn api.main:app --reload

@@ -134,6 +134,14 @@ def _save_local_project(project: dict) -> None:
     _write_local_projects(projects)
 
 
+def _delete_local_project(project_id: str) -> None:
+    """Remove one fallback project from the local JSON store."""
+    _write_local_projects([
+        project for project in _read_local_projects()
+        if project.get("project_id") != project_id
+    ])
+
+
 def _get_local_project_row(project_id: str) -> dict:
     """Fetch one project row from the local fallback store."""
     for project in _read_local_projects():
@@ -456,13 +464,13 @@ async def delete_project(
         except Exception as e:
             if not _is_missing_project_table_error(e):
                 raise
-            _write_local_projects([
-                project for project in _read_local_projects()
-                if project.get("project_id") != project_id
-            ])
+        _delete_local_project(project_id)
         
         # Delete all messages for this project
-        db.table("messages").delete().eq("project", project_id).execute()
+        try:
+            db.table("messages").delete().eq("project", project_id).execute()
+        except Exception:
+            pass
         
         return DeleteProjectResponse(deleted=True)
     
@@ -780,11 +788,11 @@ async def health_check():
     Simple health check endpoint for monitoring.
     
     Returns:
-        dict: {"status": "ok", "timestamp": ISO8601}
+        dict: {"status": "ok", "version": "1.0.0"}
     """
     return {
         "status": "ok",
-        "timestamp": datetime.utcnow().isoformat(),
+        "version": "1.0.0",
     }
 
 

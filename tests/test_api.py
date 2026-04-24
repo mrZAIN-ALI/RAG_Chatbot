@@ -202,6 +202,17 @@ async def test_widget_js_served_as_javascript(client):
 
 
 @pytest.mark.asyncio
+async def test_health_endpoint_returns_ok(client):
+    """GET /health returns the Railway health-check payload."""
+    test_client, _mock_db = client
+
+    response = await test_client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+
+
+@pytest.mark.asyncio
 async def test_cors_headers_present(client):
     """Requests with an Origin header include CORS headers."""
     test_client, _mock_db = client

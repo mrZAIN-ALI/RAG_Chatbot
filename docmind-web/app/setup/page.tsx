@@ -15,8 +15,10 @@ export default function SetupPage() {
   useEffect(() => {
     const storedProjectId = localStorage.getItem("docmind_project_id") || "";
     if (storedProjectId) {
-      setProjectId(storedProjectId);
-      setStep(2);
+      queueMicrotask(() => {
+        setProjectId(storedProjectId);
+        setStep(2);
+      });
     }
   }, []);
 

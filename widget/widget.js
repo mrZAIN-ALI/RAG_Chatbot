@@ -15,32 +15,46 @@
   // CONFIGURATION & INITIALIZATION
   // ============================================================================
 
-  // Extract project_id from script src query parameter
-  function getProjectIdFromScript() {
+  function getWidgetScriptElement() {
+    if (document.currentScript && document.currentScript.src && document.currentScript.src.includes('widget.js')) {
+      return document.currentScript;
+    }
+
     const scripts = document.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
+    for (let i = scripts.length - 1; i >= 0; i--) {
       const src = scripts[i].src;
       if (src && src.includes('widget.js')) {
-        const url = new URL(src);
-        return url.searchParams.get('id');
+        return scripts[i];
       }
     }
+
     return null;
   }
 
-  // Get API base URL from config or script origin
+  // Extract project_id from script src query parameter
+  function getProjectIdFromScript() {
+    const script = getWidgetScriptElement();
+    if (!script) return null;
+
+    const url = new URL(script.src);
+    return url.searchParams.get('id');
+  }
+
+  function normalizeOrigin(value) {
+    return String(value).replace(/\/+$/, '');
+  }
+
+  // Get API base URL from config or the deployed script origin
   function getApiBase() {
     if (window.DocMindConfig && window.DocMindConfig.apiBase) {
-      return window.DocMindConfig.apiBase;
+      return normalizeOrigin(window.DocMindConfig.apiBase);
     }
-    // Use script origin as fallback
-    const scripts = document.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
-      const src = scripts[i].src;
-      if (src && src.includes('widget.js')) {
-        return new URL(src).origin;
-      }
+
+    const script = getWidgetScriptElement();
+    if (script) {
+      return new URL(script.src).origin;
     }
+
     return window.location.origin;
   }
 

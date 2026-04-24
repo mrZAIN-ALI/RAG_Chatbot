@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import HomePage from "@/app/page";
 import DashboardPage from "@/app/dashboard/page";
 import StepOne from "@/components/StepOne";

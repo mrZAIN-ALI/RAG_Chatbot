@@ -16,15 +16,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python latest
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.x"
 
-      - name: Set up Node 20
+      - name: Set up Node latest
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "latest"
           cache: "npm"
           cache-dependency-path: |
             widget/package-lock.json
@@ -51,10 +51,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node 20
+      - name: Set up Node latest
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "latest"
           cache: "npm"
           cache-dependency-path: |
             docmind-web/package-lock.json
