@@ -16,8 +16,10 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 API_BASE = os.environ.get("DOCMIND_API_BASE", "http://127.0.0.1:8000").rstrip("/")
-API_LOG = ROOT / ".docmind-test-api.log"
-API_ERR_LOG = ROOT / ".docmind-test-api.err.log"
+RUNTIME_DIR = ROOT / ".runtime"
+LOG_DIR = RUNTIME_DIR / "logs"
+API_LOG = LOG_DIR / "test-api.log"
+API_ERR_LOG = LOG_DIR / "test-api.err.log"
 
 
 def health_ok() -> bool:
@@ -47,6 +49,7 @@ def start_backend() -> subprocess.Popen[bytes] | None:
         return None
 
     port = str(parsed.port or 8000)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
     API_LOG.unlink(missing_ok=True)
     API_ERR_LOG.unlink(missing_ok=True)
 

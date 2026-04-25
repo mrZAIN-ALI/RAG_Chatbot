@@ -6,7 +6,10 @@ const { test, expect } = require("@playwright/test");
 
 const ROOT = path.resolve(__dirname, "..");
 const ENV_FILE = path.join(ROOT, ".env");
-const PID_FILE = path.join(ROOT, ".docmind-runner.pids.json");
+const PID_FILES = [
+  path.join(ROOT, ".runtime", "docmind-runner.pids.json"),
+  path.join(ROOT, ".docmind-runner.pids.json"),
+];
 const SAMPLE_PDF = path.join(ROOT, "tests", "fixtures", "sample.pdf");
 const BAD_KEY_MODEL = "gemini-2.5-flash";
 
@@ -38,9 +41,13 @@ function resolveApiBase() {
     return runtimeEnv.DOCMIND_API_BASE.replace(/\/$/, "");
   }
 
-  if (fs.existsSync(PID_FILE)) {
+  for (const pidFile of PID_FILES) {
+    if (!fs.existsSync(pidFile)) {
+      continue;
+    }
+
     try {
-      const pidData = JSON.parse(fs.readFileSync(PID_FILE, "utf8"));
+      const pidData = JSON.parse(fs.readFileSync(pidFile, "utf8"));
       if (pidData.apiBase) {
         return String(pidData.apiBase).replace(/\/$/, "");
       }

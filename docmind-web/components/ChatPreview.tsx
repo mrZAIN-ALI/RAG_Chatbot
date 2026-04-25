@@ -21,14 +21,14 @@ function escapeHtml(value: string): string {
 export default function ChatPreview({ projectId, projectName }: ChatPreviewProps) {
   if (!projectId) {
     return (
-      <Card className="min-h-[520px] border-slate-200 shadow-sm">
-        <CardHeader className="border-b border-slate-200 bg-white">
+      <Card className="min-h-[520px]">
+        <CardHeader className="border-b border-[color:var(--border)] bg-[color:var(--surface-strong)]">
           <CardTitle>Live Chat Preview</CardTitle>
         </CardHeader>
-        <CardContent className="flex min-h-[430px] items-center justify-center bg-slate-50 p-8 text-center">
+        <CardContent className="flex min-h-[430px] items-center justify-center bg-[color:var(--surface)] p-8 text-center">
           <div>
-            <p className="text-sm font-medium text-slate-900">Select a chatbot from the left.</p>
-            <p className="mt-2 text-sm text-slate-600">The live preview opens only for the project you choose.</p>
+            <p className="text-sm font-semibold text-[color:var(--foreground)]">Select a chatbot from the left.</p>
+            <p className="mt-2 text-sm text-[color:var(--muted)]">The live preview opens only for the project you choose.</p>
           </div>
         </CardContent>
       </Card>
@@ -46,20 +46,20 @@ export default function ChatPreview({ projectId, projectName }: ChatPreviewProps
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     html,body{height:100%;}
-    body{font-family:Inter,Arial,sans-serif;background:#eef2f7;margin:0;color:#0f172a;overflow:hidden;}
+    body{font-family:Inter,Arial,sans-serif;background:#f7f8fb;margin:0;color:#111118;overflow:hidden;}
     .site{min-height:100%;display:flex;flex-direction:column;}
-    .nav{height:54px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dbe3ee;background:#fff;padding:0 18px;}
+    .nav{height:54px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dfe3ee;background:#fff;padding:0 18px;}
     .brand{font-weight:700;font-size:15px;}
-    .links{display:flex;gap:14px;color:#64748b;font-size:12px;}
-    .hero{padding:30px 22px 20px;background:#f8fafc;}
-    .eyebrow{font-size:12px;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.08em;}
+    .links{display:flex;gap:14px;color:#62677a;font-size:12px;}
+    .hero{padding:30px 22px 20px;background:#f7f8fb;}
+    .eyebrow{font-size:12px;font-weight:700;color:#7c2cff;text-transform:uppercase;}
     h1{margin:8px 0 8px;font-size:30px;line-height:1.08;max-width:520px;}
-    p{margin:0;color:#475569;line-height:1.55;font-size:14px;max-width:560px;}
+    p{margin:0;color:#62677a;line-height:1.55;font-size:14px;max-width:560px;}
     .content{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px 22px;}
-    .card{background:#fff;border:1px solid #dbe3ee;border-radius:10px;padding:16px;box-shadow:0 10px 24px rgba(15,23,42,.05);}
+    .card{background:#fff;border:1px solid #dfe3ee;border-radius:8px;padding:16px;box-shadow:0 10px 24px rgba(17,17,24,.05);}
     .card h2{margin:0 0 8px;font-size:15px;}
     .card p{font-size:13px;}
-    .preview-label{position:absolute;left:14px;bottom:14px;border:1px solid #dbe3ee;border-radius:999px;background:#fff;padding:8px 12px;color:#64748b;font-size:12px;}
+    .preview-label{position:absolute;left:14px;bottom:14px;border:1px solid #dfe3ee;border-radius:8px;background:#fff;padding:8px 12px;color:#62677a;font-size:12px;}
     @media(max-width:720px){.content{grid-template-columns:1fr}.links{display:none}h1{font-size:24px}}
   </style>
 </head>
@@ -87,12 +87,16 @@ export default function ChatPreview({ projectId, projectName }: ChatPreviewProps
 </html>`;
 
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-sm lg:sticky lg:top-6">
-      <CardHeader className="border-b border-slate-200 bg-white">
+    <Card className="overflow-hidden lg:sticky lg:top-20">
+      <CardHeader className="border-b border-[color:var(--border)] bg-[color:var(--surface-strong)]">
         <CardTitle>Live Chat Preview{projectName ? ` - ${projectName}` : ""}</CardTitle>
       </CardHeader>
-      <CardContent className="bg-slate-50 p-3">
-        <iframe title="DocMind Chat Preview" className="h-[620px] w-full rounded-md border border-slate-200 bg-white" srcDoc={srcDoc} />
+      <CardContent className="bg-[color:var(--surface)] p-3">
+        <iframe
+          title="DocMind Chat Preview"
+          className="h-[620px] w-full rounded-[8px] border border-[color:var(--border)] bg-white"
+          srcDoc={srcDoc}
+        />
       </CardContent>
     </Card>
   );

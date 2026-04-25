@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Bot, Plus, RefreshCw } from "lucide-react";
+import { Bot, LayoutDashboard, Plus, RefreshCw, Server, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { AppNav } from "@/components/AppNav";
 import ChatPreview from "@/components/ChatPreview";
 import ProjectCard from "@/components/ProjectCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Surface } from "@/components/Surface";
+import { Button } from "@/components/ui/button";
 import { deleteProject, getProjects, type Project } from "@/lib/api";
 
 export default function DashboardPage() {
@@ -15,21 +17,31 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [deletingProjectIds, setDeletingProjectIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const items = await getProjects();
-        setProjects(items);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Could not load projects.";
-        toast.error(message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void loadProjects();
+  const loadProjects = useCallback(async () => {
+    setLoading(true);
+    try {
+      const items = await getProjects();
+      setProjects(items);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not load projects.";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (active) {
+        void loadProjects();
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [loadProjects]);
 
   const selectedProject = useMemo(
     () => projects.find((project) => project.project_id === selectedProjectId),
@@ -61,68 +73,114 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100">
-      <section className="border-b border-slate-200 bg-slate-950 text-white">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-6 md:px-10">
+    <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] decor-grid">
+      <AppNav active="dashboard" ctaHref="/setup" ctaLabel="New chatbot" />
+
+      <main className="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
+        <header className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-slate-950">
-                <Bot className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-sm text-slate-300">DocMind</p>
-                <h1 className="text-2xl font-semibold tracking-tight">Project Dashboard</h1>
-              </div>
-            </div>
+            <p className="text-sm font-semibold uppercase text-[color:var(--accent)]">Project console</p>
+            <h1 className="mt-3 text-4xl font-bold leading-tight text-[color:var(--foreground)] md:text-6xl">
+              Dashboard
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--muted)] md:text-lg">
+              Manage every chatbot, copy embed scripts, preview the widget, and remove projects without leaving the page.
+            </p>
           </div>
-          <Link
-            href="/setup"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-slate-100"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            New chatbot
-          </Link>
-        </div>
-      </section>
 
-      <div className="mx-auto grid w-full max-w-7xl gap-6 px-6 py-8 md:px-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(380px,0.9fr)]">
-        <Card className="overflow-hidden border-slate-200 shadow-sm">
-          <CardHeader className="border-b border-slate-200 bg-white">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <CardTitle>Your Projects</CardTitle>
-                <p className="mt-1 text-sm text-slate-500">{projects.length} chatbot{projects.length === 1 ? "" : "s"} configured</p>
-              </div>
-              {loading ? <RefreshCw className="h-4 w-4 animate-spin text-slate-400" /> : null}
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={loadProjects} disabled={loading}>
+              <RefreshCw className={loading ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"} />
+              Refresh
+            </Button>
+            <Link
+              href="/setup"
+              className="inline-flex h-10 items-center justify-center rounded-[8px] bg-[color:var(--accent)] px-4 text-sm font-semibold text-white shadow-[var(--shadow-soft)] transition hover:bg-[color:var(--foreground)] hover:text-[color:var(--background)]"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              New chatbot
+            </Link>
+          </div>
+        </header>
+
+        <section className="mt-8 grid gap-4 md:grid-cols-3">
+          <Surface className="flex items-center gap-4">
+            <span className="flex h-11 w-11 items-center justify-center rounded-[8px] bg-[color:var(--accent-soft)] text-[color:var(--accent)]">
+              <Bot className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-2xl font-bold text-[color:var(--foreground)]">{projects.length}</p>
+              <p className="text-sm text-[color:var(--muted)]">Configured chatbots</p>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3 bg-slate-50/70 p-4">
-            {loading ? <p className="text-sm text-slate-600">Loading projects...</p> : null}
+          </Surface>
+          <Surface className="flex items-center gap-4">
+            <span className="flex h-11 w-11 items-center justify-center rounded-[8px] bg-[color:var(--accent-soft)] text-[color:var(--accent)]">
+              <LayoutDashboard className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-2xl font-bold text-[color:var(--foreground)]">
+                {selectedProject ? "1" : "0"}
+              </p>
+              <p className="text-sm text-[color:var(--muted)]">Live previews selected</p>
+            </div>
+          </Surface>
+          <Surface className="flex items-center gap-4">
+            <span className="flex h-11 w-11 items-center justify-center rounded-[8px] bg-[color:var(--accent-soft)] text-[color:var(--accent)]">
+              <Server className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-2xl font-bold text-[color:var(--foreground)]">API</p>
+              <p className="text-sm text-[color:var(--muted)]">Connected through backend</p>
+            </div>
+          </Surface>
+        </section>
 
-            {!loading && projects.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
-                <p className="text-sm font-medium text-slate-900">No projects yet.</p>
-                <Link href="/setup" className="mt-2 inline-flex text-sm font-semibold text-slate-900 underline">
-                  Build your first chatbot
-                </Link>
+        <div className="mt-8 grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.92fr)]">
+          <Surface className="overflow-hidden p-0">
+            <div className="border-b border-[color:var(--border)] bg-[color:var(--surface-strong)] p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold text-[color:var(--foreground)]">Your Projects</h2>
+                  <p className="mt-1 text-sm text-[color:var(--muted)]">
+                    {projects.length} chatbot{projects.length === 1 ? "" : "s"} configured
+                  </p>
+                </div>
+                {loading ? <RefreshCw className="h-4 w-4 animate-spin text-[color:var(--accent)]" /> : null}
               </div>
-            ) : null}
+            </div>
 
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.project_id}
-                project={project}
-                selected={project.project_id === selectedProjectId}
-                deleting={deletingProjectIds.has(project.project_id)}
-                onSelect={(item) => setSelectedProjectId(item.project_id)}
-                onDelete={handleDelete}
-              />
-            ))}
-          </CardContent>
-        </Card>
+            <div className="space-y-3 p-4">
+              {loading ? <p className="text-sm text-[color:var(--muted)]">Loading projects...</p> : null}
 
-        <ChatPreview projectId={selectedProject?.project_id} projectName={selectedProject?.name} />
-      </div>
-    </main>
+              {!loading && projects.length === 0 ? (
+                <div className="rounded-[8px] border border-dashed border-[color:var(--border)] bg-[color:var(--surface-strong)] p-8 text-center">
+                  <Sparkles className="mx-auto h-8 w-8 text-[color:var(--accent)]" />
+                  <p className="mt-4 text-sm font-semibold text-[color:var(--foreground)]">No projects yet.</p>
+                  <Link
+                    href="/setup"
+                    className="mt-2 inline-flex text-sm font-semibold text-[color:var(--accent)] underline"
+                  >
+                    Build your first chatbot
+                  </Link>
+                </div>
+              ) : null}
+
+              {projects.map((project) => (
+                <ProjectCard
+                  key={project.project_id}
+                  project={project}
+                  selected={project.project_id === selectedProjectId}
+                  deleting={deletingProjectIds.has(project.project_id)}
+                  onSelect={(item) => setSelectedProjectId(item.project_id)}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          </Surface>
+
+          <ChatPreview projectId={selectedProject?.project_id} projectName={selectedProject?.name} />
+        </div>
+      </main>
+    </div>
   );
 }

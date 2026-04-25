@@ -36,6 +36,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # DocMind runtime data and generated stores
+.runtime/
 .docmind-runner.pids.json
 .docmind-*.json
 artifacts/docmind_projects.json

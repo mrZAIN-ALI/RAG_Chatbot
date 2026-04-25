@@ -66,6 +66,7 @@ tests/               API, integration, and browser E2E tests
 docs/                Archived milestone notes and supporting docs
 artifacts/           Local runtime artifacts, ignored except curated docs
 vector_stores/       Local generated vector indexes, ignored
+.runtime/            Local logs and runner PID metadata, ignored
 ```
 
 ## Supabase Schema

@@ -10,11 +10,13 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $frontendDir = Join-Path $root "docmind-web"
 $pythonExe = Join-Path $root ".venv\Scripts\python.exe"
-$pidFile = Join-Path $root ".docmind-runner.pids.json"
-$backendLog = Join-Path $root ".docmind-backend.log"
-$frontendLog = Join-Path $root ".docmind-frontend.log"
-$backendErrLog = Join-Path $root ".docmind-backend.err.log"
-$frontendErrLog = Join-Path $root ".docmind-frontend.err.log"
+$runtimeDir = Join-Path $root ".runtime"
+$logDir = Join-Path $runtimeDir "logs"
+$pidFile = Join-Path $runtimeDir "docmind-runner.pids.json"
+$backendLog = Join-Path $logDir "backend.log"
+$frontendLog = Join-Path $logDir "frontend.log"
+$backendErrLog = Join-Path $logDir "backend.err.log"
+$frontendErrLog = Join-Path $logDir "frontend.err.log"
 $envFile = Join-Path $root ".env"
 
 function Write-Flag {
@@ -93,6 +95,39 @@ function Wait-Url {
     return $false
 }
 
+function Get-DescendantProcessIds {
+    param(
+        [int]$ProcessId,
+        [object[]]$Processes
+    )
+
+    $children = @($Processes | Where-Object { $_.ParentProcessId -eq $ProcessId })
+    foreach ($child in $children) {
+        Get-DescendantProcessIds -ProcessId $child.ProcessId -Processes $Processes
+        $child.ProcessId
+    }
+}
+
+function Stop-ProcessTree {
+    param(
+        [int]$ProcessId,
+        [string]$Label
+    )
+
+    $processes = @(Get-CimInstance Win32_Process)
+    $descendantIds = @(Get-DescendantProcessIds -ProcessId $ProcessId -Processes $processes | Select-Object -Unique)
+    $processIds = @($descendantIds + $ProcessId) | Where-Object { $_ }
+
+    foreach ($procId in $processIds) {
+        try {
+            Stop-Process -Id $procId -Force -ErrorAction Stop
+            Write-Host "Stopped $Label PID=$procId" -ForegroundColor Yellow
+        } catch {
+            # Ignore if already gone.
+        }
+    }
+}
+
 function Stop-OldRunnerProcesses {
     if (-not (Test-Path $pidFile)) {
         return
@@ -102,12 +137,7 @@ function Stop-OldRunnerProcesses {
         $data = Get-Content $pidFile -Raw | ConvertFrom-Json
         foreach ($procId in @($data.backendPid, $data.frontendPid)) {
             if ($procId) {
-                try {
-                    Stop-Process -Id $procId -Force -ErrorAction Stop
-                    Write-Host "Stopped previous runner process PID=$procId" -ForegroundColor Yellow
-                } catch {
-                    # Ignore if already gone.
-                }
+                Stop-ProcessTree -ProcessId $procId -Label "previous runner process"
             }
         }
     } catch {
@@ -136,8 +166,7 @@ function Stop-StaleDocMindProcesses {
         } |
         ForEach-Object {
             try {
-                Stop-Process -Id $_.ProcessId -Force -ErrorAction Stop
-                Write-Host "Stopped stale DocMind process PID=$($_.ProcessId)" -ForegroundColor Yellow
+                Stop-ProcessTree -ProcessId $_.ProcessId -Label "stale DocMind process"
             } catch {
                 # Ignore if already gone.
             }
@@ -148,6 +177,7 @@ if (-not (Test-Path $envFile)) {
     throw "Configuration file not found: $envFile. Copy .env.example to .env and fill in real keys."
 }
 
+New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 Stop-OldRunnerProcesses
 Stop-StaleDocMindProcesses
 Remove-Item $backendLog, $frontendLog -ErrorAction SilentlyContinue
@@ -190,6 +220,8 @@ $frontendProc = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfi
     backendPort = $backendPort
     frontendPort = $frontendPort
     apiBase = $apiBase
+    runtimeDir = $runtimeDir
+    logDir = $logDir
 } | ConvertTo-Json | Set-Content $pidFile
 
 $backendHealthy = Wait-Url -Url "$apiBase/health" -TimeoutSeconds 90

@@ -17,7 +17,11 @@ LOW_CONFIDENCE_PREFIX = (
 )
 ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = ROOT / ".env"
-PID_FILE = ROOT / ".docmind-runner.pids.json"
+RUNTIME_DIR = ROOT / ".runtime"
+PID_FILES = (
+    RUNTIME_DIR / "docmind-runner.pids.json",
+    ROOT / ".docmind-runner.pids.json",
+)
 SAMPLE_PDF = ROOT / "tests" / "fixtures" / "sample.pdf"
 
 
@@ -46,9 +50,12 @@ def _resolve_api_base() -> str:
     if explicit:
         return explicit.rstrip("/")
 
-    if PID_FILE.exists():
+    for pid_file in PID_FILES:
+        if not pid_file.exists():
+            continue
+
         try:
-            pid_data = json.loads(PID_FILE.read_text(encoding="utf-8"))
+            pid_data = json.loads(pid_file.read_text(encoding="utf-8"))
             api_base = pid_data.get("apiBase")
             if api_base:
                 return str(api_base).rstrip("/")

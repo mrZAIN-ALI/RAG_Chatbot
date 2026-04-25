@@ -29,9 +29,9 @@ export default function ProjectCard({ project, selected, deleting = false, onDel
     <article
       data-testid="project-card"
       className={[
-        "group rounded-lg border bg-white p-4 shadow-sm transition",
-        "hover:border-slate-300 hover:shadow-md",
-        selected ? "border-slate-900 ring-2 ring-slate-900/10" : "border-slate-200",
+        "group rounded-[8px] border bg-[color:var(--surface-strong)] p-4 shadow-[var(--shadow-soft)] transition",
+        "hover:border-[color:var(--accent)]",
+        selected ? "border-[color:var(--accent)] ring-2 ring-[color:var(--accent)]/15" : "border-[color:var(--border)]",
         deleting ? "pointer-events-none opacity-70" : "",
       ].join(" ")}
       onClick={() => onSelect(project)}
@@ -46,10 +46,12 @@ export default function ProjectCard({ project, selected, deleting = false, onDel
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="truncate text-base font-semibold text-slate-950">{project.name}</h2>
-            {selected ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> : null}
+            <h2 className="truncate text-base font-semibold text-[color:var(--foreground)]">{project.name}</h2>
+            {selected ? <CheckCircle2 className="h-4 w-4 shrink-0 text-[color:var(--success)]" /> : null}
           </div>
-          <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">{project.description || "No description"}</p>
+          <p className="mt-1 line-clamp-2 text-sm leading-6 text-[color:var(--muted)]">
+            {project.description || "No description"}
+          </p>
         </div>
       </div>
 

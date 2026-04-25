@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BrainCircuit, KeyRound, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { createProject } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -64,21 +65,28 @@ export default function StepOne({ onCreated }: StepOneProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Step 1 - Describe Your Bot</CardTitle>
-        <CardDescription>Define your bot&apos;s identity and boundaries before uploading documents.</CardDescription>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b border-[color:var(--border)] bg-[color:var(--surface-strong)]">
+        <div className="flex items-start gap-4">
+          <span className="flex h-11 w-11 items-center justify-center rounded-[8px] bg-[color:var(--accent-soft)] text-[color:var(--accent)]">
+            <BrainCircuit className="h-5 w-5" />
+          </span>
+          <div>
+            <CardTitle>Step 1 - Describe Your Bot</CardTitle>
+            <CardDescription>Define the assistant identity, source boundaries, and model connection.</CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5 p-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700" htmlFor="bot-name">
+          <label className="text-sm font-semibold text-[color:var(--foreground)]" htmlFor="bot-name">
             Bot name
           </label>
           <Input id="bot-name" placeholder="Support Assistant" value={name} onChange={(event) => setName(event.target.value)} />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700" htmlFor="bot-description">
+          <label className="text-sm font-semibold text-[color:var(--foreground)]" htmlFor="bot-description">
             What should this bot know about?
           </label>
           <Textarea
@@ -90,7 +98,7 @@ export default function StepOne({ onCreated }: StepOneProps) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700" htmlFor="bot-tone">
+          <label className="text-sm font-semibold text-[color:var(--foreground)]" htmlFor="bot-tone">
             Tone
           </label>
           <Select
@@ -106,7 +114,7 @@ export default function StepOne({ onCreated }: StepOneProps) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700" htmlFor="restricted-topics">
+          <label className="text-sm font-semibold text-[color:var(--foreground)]" htmlFor="restricted-topics">
             Topics this bot should NOT answer
           </label>
           <Textarea
@@ -117,9 +125,19 @@ export default function StepOne({ onCreated }: StepOneProps) {
           />
         </div>
 
-        <div className="grid gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
+        <div className="grid gap-4 rounded-[8px] border border-[color:var(--border)] bg-[color:var(--surface-strong)] p-4 md:grid-cols-2">
+          <div className="flex items-center gap-3 md:col-span-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-[color:var(--accent-soft)] text-[color:var(--accent)]">
+              <KeyRound className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[color:var(--foreground)]">Provider connection</p>
+              <p className="text-xs text-[color:var(--muted)]">Stored with the project configuration for backend chat calls.</p>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700" htmlFor="bot-provider">
+            <label className="text-sm font-semibold text-[color:var(--foreground)]" htmlFor="bot-provider">
               AI provider
             </label>
             <Input
@@ -131,7 +149,7 @@ export default function StepOne({ onCreated }: StepOneProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700" htmlFor="bot-model">
+            <label className="text-sm font-semibold text-[color:var(--foreground)]" htmlFor="bot-model">
               Model name
             </label>
             <Input
@@ -143,7 +161,7 @@ export default function StepOne({ onCreated }: StepOneProps) {
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium text-slate-700" htmlFor="bot-api-key">
+            <label className="text-sm font-semibold text-[color:var(--foreground)]" htmlFor="bot-api-key">
               API key
             </label>
             <Input
@@ -156,13 +174,17 @@ export default function StepOne({ onCreated }: StepOneProps) {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-3 border-t border-[color:var(--border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-sm text-[color:var(--muted)]">
+            <ShieldCheck className="h-4 w-4 text-[color:var(--success)]" />
+            Required: bot name, provider, model, and API key.
+          </div>
           <Button disabled={!canContinue} onClick={handleContinue}>
             {submitting ? "Creating..." : "Continue"}
           </Button>
-          {statusMessage ? <p className="text-sm text-slate-600">{statusMessage}</p> : null}
-          {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
         </div>
+        {statusMessage ? <p className="text-sm text-[color:var(--muted)]">{statusMessage}</p> : null}
+        {errorMessage ? <p className="text-sm text-[color:var(--danger)]">{errorMessage}</p> : null}
       </CardContent>
     </Card>
   );
