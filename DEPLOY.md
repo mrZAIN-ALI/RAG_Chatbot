@@ -6,8 +6,13 @@ DocMind can be deployed on free tiers with Railway for FastAPI and Vercel for Ne
 
 1. Push this repository to GitHub.
 2. Open Railway and create a new project from the GitHub repo.
-3. Select the repository root as the service source. Railway reads `railway.json` and uses Nixpacks.
-4. Set the backend environment variables in the Railway dashboard:
+3. In Supabase, open the SQL Editor and run `supabase_schema.sql` from the repository root. It creates:
+   - `project_config`
+   - `messages`
+   - `conversation_summaries`
+   - `low_confidence_queries`
+4. Select the repository root as the service source. Railway reads `railway.json` and uses Nixpacks.
+5. Set the backend environment variables in the Railway dashboard:
    - `SUPABASE_URL`
    - `SUPABASE_API_KEY`
    - `VECTOR_STORE_BACKEND`
@@ -25,13 +30,13 @@ DocMind can be deployed on free tiers with Railway for FastAPI and Vercel for Ne
    - `YOUR_SITE_URL`
    - `YOUR_SITE_NAME`
    - `NEXT_PUBLIC_API_BASE` (optional for FastAPI, but keep it aligned with the Railway URL if you mirror the full `.env`)
-5. Deploy the service. Railway provides `PORT` automatically and starts:
+6. Deploy the service. Railway provides `PORT` automatically and starts:
 
 ```bash
 uvicorn api.main:app --host 0.0.0.0 --port $PORT
 ```
 
-6. Open `/health` on the deployed Railway URL and confirm it returns:
+7. Open `/health` on the deployed Railway URL and confirm it returns:
 
 ```bash
 curl https://your-docmind-api.up.railway.app/health
@@ -41,7 +46,7 @@ curl https://your-docmind-api.up.railway.app/health
 { "status": "ok", "version": "1.0.0" }
 ```
 
-7. Save the deployed Railway URL. You will use it as `NEXT_PUBLIC_API_BASE` in Vercel.
+8. Save the deployed Railway URL. You will use it as `NEXT_PUBLIC_API_BASE` in Vercel.
 
 ## Section 2 - Deploy Next.js to Vercel (free)
 

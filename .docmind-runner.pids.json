@@ -1,7 +1,0 @@
-{
-    "frontendPid":  18060,
-    "backendPid":  1520,
-    "backendPort":  8000,
-    "frontendPort":  3000,
-    "apiBase":  "http://127.0.0.1:8000"
-}

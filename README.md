@@ -56,6 +56,22 @@ cd docmind-web; npm run dev
 | Deployment | Railway free tier for FastAPI, Vercel free tier for Next.js |
 | Testing | Pytest, Vitest, Playwright |
 
+## Project Structure
+
+```text
+api/                 FastAPI backend and API models
+docmind-web/         Next.js setup flow and dashboard
+widget/              Embeddable vanilla JS chatbot widget
+tests/               API, integration, and browser E2E tests
+docs/                Archived milestone notes and supporting docs
+artifacts/           Local runtime artifacts, ignored except curated docs
+vector_stores/       Local generated vector indexes, ignored
+```
+
+## Supabase Schema
+
+Run [supabase_schema.sql](./supabase_schema.sql) in the Supabase SQL Editor before deploying. It creates `project_config`, `messages`, `conversation_summaries`, and `low_confidence_queries`.
+
 ## Milestone Changelog
 
 | Milestone | Highlights |
