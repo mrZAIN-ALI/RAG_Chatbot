@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { BarChart3, Bot, Menu, X } from "lucide-react";
+import { Bot, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
@@ -29,95 +29,78 @@ function LogoMark() {
   );
 }
 
-function NavLink({
-  href,
-  label,
-  active,
-  onClick,
-}: {
-  href: string;
-  label: string;
-  active: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className={cn(
-        "rounded-[8px] px-3 py-2 text-sm font-medium text-[color:var(--muted)] transition hover:bg-[color:var(--surface-strong)] hover:text-[color:var(--foreground)]",
-        active ? "bg-[color:var(--surface-strong)] text-[color:var(--foreground)] shadow-[var(--shadow-soft)]" : ""
-      )}
-    >
-      {label}
-    </Link>
-  );
-}
-
 export function AppNav({ active, ctaHref = "/setup", ctaLabel = "New chatbot" }: AppNavProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[color:var(--border)] bg-[color:var(--nav-bg)] backdrop-blur-xl">
-      <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 md:px-8">
-        <Link href="/" className="flex items-center gap-3 text-[color:var(--foreground)]">
-          <LogoMark />
-          <span className="text-base font-semibold">DocMind</span>
-        </Link>
-
-        <div className="hidden items-center gap-1 md:flex">
-          {links.map((link) => (
-            <NavLink
-              key={link.href}
-              href={link.href}
-              label={link.label}
-              active={active === link.id}
-            />
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href={ctaHref}
-            className="hidden h-10 items-center justify-center rounded-[8px] bg-[color:var(--foreground)] px-4 text-sm font-semibold text-[color:var(--background)] transition hover:bg-[color:var(--accent)] hover:text-white md:inline-flex"
-          >
-            <BarChart3 className="mr-2 h-4 w-4" />
-            {ctaLabel}
+    <>
+      <header className="sticky top-0 z-50 border-b border-[color:var(--border)] bg-[color:var(--nav-bg)] backdrop-blur-xl">
+        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 md:px-8">
+          <Link href="/" className="flex items-center gap-3 text-[color:var(--foreground)]">
+            <LogoMark />
+            <span className="text-base font-semibold">DocMind</span>
           </Link>
-          <ThemeToggle />
-          <button
-            type="button"
-            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
-            onClick={() => setOpen((current) => !current)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-[8px] border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] md:hidden"
-          >
-            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </button>
-        </div>
-      </nav>
+
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              type="button"
+              aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+              onClick={() => setOpen((current) => !current)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[8px] border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] shadow-[var(--shadow-soft)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+            >
+              {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+          </div>
+        </nav>
+      </header>
 
       {open ? (
-        <div className="border-t border-[color:var(--border)] bg-[color:var(--surface-strong)] px-5 py-4 md:hidden">
-          <div className="flex flex-col gap-2">
-            {links.map((link) => (
-              <NavLink
-                key={link.href}
-                href={link.href}
-                label={link.label}
-                active={active === link.id}
-                onClick={() => setOpen(false)}
-              />
-            ))}
+        <div
+          className="fixed inset-0 z-50 bg-black/55 text-white backdrop-blur-md"
+          role="presentation"
+          onClick={() => setOpen(false)}
+        >
+          <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-end px-5 md:px-8">
+            <button
+              type="button"
+              aria-label="Close navigation menu"
+              onClick={() => setOpen(false)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[8px] border border-white/20 bg-white/10 text-white shadow-[var(--shadow-soft)] transition hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-5 pb-16">
+            <div className="text-center" onClick={(event) => event.stopPropagation()}>
+              <div className="space-y-5">
+                {links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "block text-5xl font-bold leading-tight text-white transition hover:text-[color:var(--accent)] md:text-7xl",
+                      active === link.id ? "text-[color:var(--accent)]" : ""
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
             <Link
               href={ctaHref}
               onClick={() => setOpen(false)}
-              className="mt-2 inline-flex h-10 items-center justify-center rounded-[8px] bg-[color:var(--foreground)] px-4 text-sm font-semibold text-[color:var(--background)]"
+                className="mt-10 inline-flex h-12 items-center justify-center rounded-[8px] bg-[color:var(--accent)] px-8 text-sm font-semibold text-white shadow-[var(--shadow-soft)] transition hover:bg-[color:var(--foreground)] hover:text-[color:var(--background)]"
             >
               {ctaLabel}
             </Link>
+            </div>
           </div>
         </div>
       ) : null}
-    </header>
+    </>
   );
 }

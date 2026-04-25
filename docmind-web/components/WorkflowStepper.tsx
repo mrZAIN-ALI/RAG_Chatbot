@@ -35,10 +35,12 @@ export function WorkflowStepper({
   currentStep,
   steps = defaultSteps,
   compact = false,
+  showNumbers = true,
 }: {
   currentStep?: number;
   steps?: WorkflowStep[];
   compact?: boolean;
+  showNumbers?: boolean;
 }) {
   return (
     <div className={cn("grid gap-3", compact ? "md:grid-cols-3" : "lg:grid-cols-3")}>
@@ -67,7 +69,11 @@ export function WorkflowStepper({
                 {isComplete ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
               </span>
               <div>
-                <p className="text-xs font-semibold text-[color:var(--muted)]">Step {step.id}</p>
+                {showNumbers ? (
+                  <p className="text-xs font-semibold text-[color:var(--muted)]">Step {step.id}</p>
+                ) : (
+                  <p className="text-xs font-semibold uppercase text-[color:var(--muted)]">Workflow stage</p>
+                )}
                 <h3 className="text-base font-semibold text-[color:var(--foreground)]">{step.title}</h3>
               </div>
             </div>

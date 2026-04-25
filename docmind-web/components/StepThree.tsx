@@ -42,9 +42,19 @@ export default function StepThree({ projectId, onDashboard }: StepThreeProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-5 p-6">
-          <pre className="overflow-x-auto rounded-[8px] border border-[color:var(--border)] bg-[color:var(--foreground)] p-4 text-xs leading-6 text-[color:var(--background)]">
-            {scriptTag}
-          </pre>
+          <div className="relative">
+            <pre className="overflow-x-auto rounded-[8px] border border-[color:var(--border)] bg-[color:var(--foreground)] p-4 pr-24 text-xs leading-6 text-[color:var(--background)]">
+              {scriptTag}
+            </pre>
+            <button
+              type="button"
+              aria-label="Copy embed code"
+              onClick={handleCopy}
+              className="absolute right-3 top-3 inline-flex h-8 items-center justify-center rounded-[8px] border border-white/20 bg-white/10 px-3 text-xs font-semibold text-[color:var(--background)] transition hover:bg-white/20"
+            >
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
           <div className="flex flex-wrap gap-3">
             <Button onClick={handleCopy}>
               {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}

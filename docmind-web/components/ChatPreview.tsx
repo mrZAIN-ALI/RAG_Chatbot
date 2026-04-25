@@ -21,11 +21,11 @@ function escapeHtml(value: string): string {
 export default function ChatPreview({ projectId, projectName }: ChatPreviewProps) {
   if (!projectId) {
     return (
-      <Card className="min-h-[520px]">
+      <Card className="min-h-[700px]">
         <CardHeader className="border-b border-[color:var(--border)] bg-[color:var(--surface-strong)]">
           <CardTitle>Live Chat Preview</CardTitle>
         </CardHeader>
-        <CardContent className="flex min-h-[430px] items-center justify-center bg-[color:var(--surface)] p-8 text-center">
+        <CardContent className="flex min-h-[610px] items-center justify-center bg-[color:var(--surface)] p-8 text-center">
           <div>
             <p className="text-sm font-semibold text-[color:var(--foreground)]">Select a chatbot from the left.</p>
             <p className="mt-2 text-sm text-[color:var(--muted)]">The live preview opens only for the project you choose.</p>
@@ -94,7 +94,7 @@ export default function ChatPreview({ projectId, projectName }: ChatPreviewProps
       <CardContent className="bg-[color:var(--surface)] p-3">
         <iframe
           title="DocMind Chat Preview"
-          className="h-[620px] w-full rounded-[8px] border border-[color:var(--border)] bg-white"
+          className="h-[760px] w-full rounded-[8px] border border-[color:var(--border)] bg-white"
           srcDoc={srcDoc}
         />
       </CardContent>

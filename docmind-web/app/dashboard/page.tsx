@@ -135,7 +135,7 @@ export default function DashboardPage() {
           </Surface>
         </section>
 
-        <div className="mt-8 grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.92fr)]">
+        <div className="mt-8 grid w-full gap-6 lg:grid-cols-[minmax(300px,0.58fr)_minmax(560px,1.42fr)]">
           <Surface className="overflow-hidden p-0">
             <div className="border-b border-[color:var(--border)] bg-[color:var(--surface-strong)] p-5">
               <div className="flex items-center justify-between gap-3">
