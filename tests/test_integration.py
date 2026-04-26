@@ -12,8 +12,9 @@ import pytest
 
 
 LOW_CONFIDENCE_PREFIX = (
-    "I'm not confident I found relevant information for this question. "
-    "Here's my best attempt, but please verify: "
+    "I could not find information related to this in the business details. "
+    "I am here to assist with questions about this business, its products, "
+    "services, policies, and uploaded information. "
 )
 ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = ROOT / ".env"

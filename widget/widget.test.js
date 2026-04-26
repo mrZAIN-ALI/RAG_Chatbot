@@ -207,6 +207,33 @@ describe("DocMind widget", () => {
     expect(document.querySelector(".docmind-messages").textContent).toContain("Welcome to MedicalBot");
   });
 
+  test("preview welcome is removed before first real user message", async () => {
+    document.documentElement.innerHTML = "<head></head><body></body>";
+    mockFetch.mockClear();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ name: "MedicalBot", welcome_message: "Welcome to MedicalBot. Ask about the clinic." }),
+    });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] });
+
+    mountWidget();
+    document.querySelector(".docmind-button").click();
+    await flushPromises();
+    await flushPromises();
+
+    expect(document.querySelector(".docmind-messages").textContent).toContain("Welcome to MedicalBot");
+    mockFetch.mockClear();
+    setMessage("Hello");
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ answer: "Hello. How can I help?", confidence: 0.9 }) });
+
+    document.querySelector(".docmind-send-button").click();
+    await flushPromises();
+
+    const transcript = document.querySelector(".docmind-messages").textContent;
+    expect(transcript).not.toContain("Welcome to MedicalBot");
+    expect(transcript).toContain("Hello. How can I help?");
+  });
+
   test("visitor credentials are not shown in the widget", async () => {
     await settleHistory();
     expect(document.querySelector(".docmind-provider-input")).toBeNull();

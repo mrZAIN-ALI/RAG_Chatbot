@@ -24,10 +24,10 @@ Widget script example:
 | Guided setup | Walks through Configure -> Upload -> Embed without leaving `/setup`. |
 | Bot configuration | Captures bot name, website knowledge description, tone, restricted topics, provider, model, and API key. |
 | Document upload | Accepts PDF, TXT, and DOCX files, extracts text, chunks content, embeds it, and stores it for retrieval. |
-| RAG retrieval | Uses semantic search, cross-encoder reranking, query rewriting, confidence scoring, and optional conversation summaries. |
+| RAG retrieval | Uses semantic search, cross-encoder reranking, query rewriting, confidence scoring, small-talk handling, and optional conversation summaries. |
 | Chat API | Answers user questions from uploaded project knowledge through `/api/chat`. |
 | Widget embed | Serves `widget.js` from FastAPI and works on external websites with one script tag. |
-| Dashboard | Lists real backend projects, selects a project, previews the widget, copies embed code, refreshes projects, and deletes projects without a page refresh. |
+| Dashboard | Lists real backend projects, selects a project, previews the widget inside a realistic static website mock, copies embed code, refreshes projects, and deletes projects without a page refresh. |
 | Deployment | Includes Railway config for FastAPI and Vercel config for Next.js. |
 | Testing | Includes API unit tests, widget tests, frontend Vitest tests, integration tests, Playwright widget E2E tests, and Makefile shortcuts. |
 
@@ -206,7 +206,8 @@ Core RAG logic lives in [document_processor.py](./document_processor.py).
 | Query rewriting | Last 4 conversation turns can be rewritten into a self-contained query. |
 | Conversation memory | Long conversations can use stored summaries after `SUMMARY_THRESHOLD`. |
 | Confidence scoring | Average rerank score normalized to 0.0-1.0. |
-| Low-confidence handling | Logs low-confidence queries and prepends a verification warning when needed. |
+| Low-confidence handling | Logs low-confidence queries and gives a clear business-friendly fallback: the assistant says it could not find related information in the business details and redirects the visitor toward supported business/product/service questions. |
+| Small-talk handling | Simple greetings such as `hi`, `hello`, or `hey` do not trigger the low-confidence fallback; the assistant responds warmly and invites the visitor to ask about the business. |
 | Answer generation | Uses the configured LLM provider abstraction. |
 
 ## Frontend
@@ -227,6 +228,7 @@ Important frontend behavior:
 - Step 2 shows upload progress and chunk count after success.
 - Step 3 displays the generated script tag and provides copy buttons.
 - Dashboard deletion updates local state immediately after the backend succeeds, without a page refresh.
+- Dashboard live preview renders a static dummy website with non-navigating mock links and an auto-open chatbot panel, so users can see how their widget will look on a real site.
 - The UI supports dark and light themes through local CSS theme state.
 - No paid component libraries are used.
 
@@ -261,10 +263,20 @@ Widget behavior:
 - Loads existing chat history from `/api/history/{project_id}`.
 - Sends visitor messages to `/api/chat`.
 - Uses the saved project provider, model, and API key from setup, so website visitors do not need to enter credentials.
+- Shows a preview-only welcome message when no history exists; that welcome disappears before the first real user message and is not saved as conversation history.
 - Injects scoped `.docmind-` CSS to avoid conflicts with the host website.
 - Renders a bottom-right floating button, chat panel, loading indicator, markdown-formatted assistant messages, and friendly error messages.
 
 For the embed to work on a real website, the FastAPI backend must be online because the website loads `widget.js` and sends chat requests to that backend. The Next.js frontend does not need to be open for the widget to answer, but it is needed for creating and managing projects.
+
+## Security And Runtime Notes
+
+- Real secrets belong in `.env`, Railway, Vercel, or Supabase, never in git.
+- `.env`, runtime logs, local vector stores, generated artifacts, and build outputs are ignored.
+- `artifacts/docmind_projects.json` is a local fallback project cache and is ignored by git.
+- The local fallback project cache strips `api_key` and similar secret fields before writing to disk.
+- Widget public config intentionally does not return the stored API key.
+- If an API key was ever exposed during testing, revoke it in the provider dashboard and create a fresh key.
 
 ## Project Structure
 
@@ -352,6 +364,7 @@ Health check:
 | E2E/CI | Added integration tests, Playwright widget tests, Makefile targets, and GitHub Actions CI. |
 | Deployment polish | Added Railway/Vercel configs, health check, deployment docs, and portfolio README structure. |
 | UI polish | Added unified dark/light design, hamburger navigation, responsive layouts, larger live preview, and professional footer. |
+| Final polish | Added realistic static website preview, preview-only widget welcome behavior, generic preview logo, static mock links, safer local fallback storage, and business-friendly low-confidence wording. |
 
 ## Current Completion Checklist
 

@@ -466,7 +466,32 @@ def handle_low_confidence(query, score, project, supabase_client):
         # Logging failures must never break response generation.
         pass
 
-    return "I'm not confident I found relevant information for this question. Here's my best attempt, but please verify: "
+    return (
+        "I could not find information related to this in the business details. "
+        "I am here to assist with questions about this business, its products, "
+        "services, policies, and uploaded information. "
+    )
+
+
+def is_small_talk_query(query: str) -> bool:
+    """Return whether a query is only a greeting or simple small talk."""
+    normalized = " ".join(
+        "".join(char.lower() if char.isalnum() or char.isspace() else " " for char in (query or "")).split()
+    )
+    greetings = {
+        "hi",
+        "hhi",
+        "hello",
+        "hey",
+        "hy",
+        "helo",
+        "salam",
+        "assalamualaikum",
+        "good morning",
+        "good afternoon",
+        "good evening",
+    }
+    return normalized in greetings
 
 
 def retrieve_and_rerank(query, project, supabase_client):
@@ -805,6 +830,8 @@ def generate_answer(question, relevant_chunks, recent_messages=None, project=Non
     system_prompt = (
         "You are a helpful assistant. Use the provided context to answer the user's question. "
         "If the answer is not in the context, say so clearly. "
+        "If the user only greets you or sends simple small talk, respond warmly and invite them "
+        "to ask about this business, its products, services, policies, or uploaded details. "
         "Use recent conversation turns to resolve references like 'this', 'that', or 'it'. "
         "Be specific and concrete: preserve exact numbers/units/examples from context when present. "
         "If the user asks for a specific count (for example 10 questions), return the full requested count completely. "
@@ -819,7 +846,7 @@ def generate_answer(question, relevant_chunks, recent_messages=None, project=Non
             return "Error: LLM provider returned an empty answer."
 
         warning_prefix = ""
-        if current_confidence < low_conf_threshold:
+        if current_confidence < low_conf_threshold and not is_small_talk_query(question):
             warning_prefix = handle_low_confidence(
                 question,
                 current_confidence,

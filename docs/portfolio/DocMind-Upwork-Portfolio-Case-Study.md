@@ -34,7 +34,7 @@ The goal of DocMind is to solve this by giving a business a simple workflow:
 4. Copy one script tag.
 5. Embed the chatbot on the website.
 
-The chatbot should answer using the uploaded knowledge, remember conversation context, warn when confidence is low, and work from any website after deployment.
+The chatbot should answer using the uploaded knowledge, remember conversation context, respond clearly when a question is outside the uploaded business details, and work from any website after deployment.
 
 ## The Solution
 
@@ -133,6 +133,7 @@ The widget:
 - Loads previous history
 - Sends messages to `/api/chat`
 - Uses scoped `.docmind-` CSS so it does not conflict with the host website
+- Shows a preview-only welcome message when no history exists and removes it before the first real user message
 
 For real websites, the backend must be online because the website loads `widget.js` and sends chat requests to the deployed API.
 
@@ -322,7 +323,7 @@ The system calculates a normalized confidence score from reranking results.
 
 ### Low-Confidence Handling
 
-If the score is below the configured threshold, DocMind logs the query and prepends a warning message instead of pretending the answer is fully reliable.
+If the score is below the configured threshold, DocMind logs the query and gives a business-friendly fallback. Instead of saying "I am not confident", the assistant says it could not find related information in the business details and invites the visitor to ask about the business, products, services, policies, or uploaded information.
 
 ## LLM Provider Support
 
@@ -403,6 +404,7 @@ Widget capabilities:
 - Dynamic API origin detection
 - Public project config loading
 - Chat history loading
+- Preview-only welcome message that is not saved as chat history
 - Works from a deployed backend URL
 
 ## Testing and Quality Assurance
@@ -470,6 +472,7 @@ The widget is served from the Railway backend URL:
 - `.env` is ignored by git.
 - `.env.example` provides safe placeholders.
 - Widget public config does not return the stored API key.
+- Local fallback project storage strips API keys before writing to disk.
 - CORS is enabled so the widget can work on external domains.
 - Generated runtime files, vector indexes, build folders, logs, caches, and local environment files are ignored.
 

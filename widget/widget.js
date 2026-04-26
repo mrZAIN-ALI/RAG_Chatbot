@@ -540,9 +540,12 @@
     return blocks.join('');
   }
 
-  function addMessage(content, role, isError = false) {
+  function addMessage(content, role, isError = false, options = {}) {
     const message = document.createElement('div');
     message.className = `docmind-message docmind-${role}${isError ? ' docmind-error' : ''}`;
+    if (options.previewWelcome) {
+      message.setAttribute('data-docmind-preview-welcome', 'true');
+    }
 
     const bubble = document.createElement('div');
     bubble.className = 'docmind-message-bubble';
@@ -589,8 +592,15 @@
 
     function renderWelcomeIfEmpty() {
       if (elements.messagesArea.children.length === 0) {
-        elements.messagesArea.appendChild(addMessage(getWelcomeMessage(), 'assistant'));
+        elements.messagesArea.appendChild(addMessage(getWelcomeMessage(), 'assistant', false, { previewWelcome: true }));
         autoScroll(elements.messagesArea);
+      }
+    }
+
+    function removePreviewWelcome() {
+      const previewWelcome = elements.messagesArea.querySelector('[data-docmind-preview-welcome="true"]');
+      if (previewWelcome) {
+        previewWelcome.remove();
       }
     }
 
@@ -675,6 +685,8 @@
       const message = elements.messageInput.value.trim();
 
       if (!message) return;
+
+      removePreviewWelcome();
 
       // Add user message
       elements.messagesArea.appendChild(addMessage(message, 'user'));

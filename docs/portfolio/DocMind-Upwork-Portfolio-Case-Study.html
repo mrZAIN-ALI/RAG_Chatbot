@@ -6,71 +6,30 @@
   <title>DocMind Upwork Portfolio Case Study</title>
   <style>
     @page { size: A4; margin: 18mm 16mm; }
-    :root {
-      --ink: #111118;
-      --muted: #565b6a;
-      --border: #dfe3ee;
-      --soft: #f7f7fb;
-      --accent: #7c2cff;
-      --accent-dark: #4b12ba;
-      --cyan: #09b8d8;
-    }
+    :root {--ink:#111118;--muted:#565b6a;--border:#dfe3ee;--soft:#f7f7fb;--accent:#7c2cff;--accent-dark:#4b12ba;--cyan:#09b8d8;}
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: #ffffff;
-      color: var(--ink);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-      line-height: 1.58;
-      font-size: 14px;
-    }
-    .page { max-width: 980px; margin: 0 auto; padding: 42px 28px 64px; }
-    .hero {
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 34px;
-      background:
-        radial-gradient(circle at top right, rgba(124, 44, 255, 0.16), transparent 32%),
-        linear-gradient(135deg, #ffffff 0%, #fbfbff 100%);
-      margin-bottom: 28px;
-    }
-    .eyebrow { color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
-    h1 { margin: 8px 0 12px; font-size: 42px; line-height: 1.04; letter-spacing: -0.02em; }
-    h2 { margin: 34px 0 12px; font-size: 24px; line-height: 1.2; border-top: 1px solid var(--border); padding-top: 22px; }
-    h3 { margin: 24px 0 8px; font-size: 18px; }
-    p { margin: 0 0 12px; }
-    a { color: var(--accent-dark); }
-    table { width: 100%; border-collapse: collapse; margin: 14px 0 22px; font-size: 13px; page-break-inside: avoid; }
-    th, td { border: 1px solid var(--border); padding: 9px 10px; vertical-align: top; }
-    th { background: #f0ebff; color: #21123c; text-align: left; }
-    tr:nth-child(even) td { background: #fbfbfe; }
-    code { background: #f0eff8; color: #311064; padding: 2px 5px; border-radius: 5px; font-size: 0.92em; }
-    pre {
-      background: #111118;
-      color: #f7f7fb;
-      border-radius: 12px;
-      padding: 16px;
-      overflow-x: auto;
-      font-size: 12px;
-      line-height: 1.5;
-      page-break-inside: avoid;
-    }
-    pre code { background: transparent; color: inherit; padding: 0; }
-    ul, ol { padding-left: 22px; margin-top: 8px; margin-bottom: 16px; }
-    li { margin: 5px 0; }
-    blockquote { border-left: 4px solid var(--accent); margin: 16px 0; padding: 8px 16px; background: var(--soft); }
-    .meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 22px; }
-    .pill { border: 1px solid var(--border); border-radius: 999px; padding: 9px 12px; background: #fff; color: var(--muted); font-size: 12px; font-weight: 700; text-align: center; }
-    .footer { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
-    @media print {
-      body { font-size: 12.5px; }
-      .page { max-width: none; padding: 0; }
-      .hero { border-radius: 14px; padding: 24px; }
-      h1 { font-size: 34px; }
-      h2 { break-after: avoid; }
-      h3 { break-after: avoid; }
-      table, pre { break-inside: avoid; }
-    }
+    body { margin:0;background:#fff;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;line-height:1.58;font-size:14px; }
+    .page { max-width:980px;margin:0 auto;padding:42px 28px 64px; }
+    .hero { border:1px solid var(--border);border-radius:18px;padding:34px;background:radial-gradient(circle at top right,rgba(124,44,255,.16),transparent 32%),linear-gradient(135deg,#fff 0%,#fbfbff 100%);margin-bottom:28px; }
+    .eyebrow { color:var(--accent);font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:12px; }
+    h1 { margin:8px 0 12px;font-size:42px;line-height:1.04;letter-spacing:-.02em; }
+    h2 { margin:34px 0 12px;font-size:24px;line-height:1.2;border-top:1px solid var(--border);padding-top:22px; }
+    h3 { margin:24px 0 8px;font-size:18px; }
+    p { margin:0 0 12px; }
+    a { color:var(--accent-dark); }
+    table { width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:13px;page-break-inside:avoid; }
+    th,td { border:1px solid var(--border);padding:9px 10px;vertical-align:top; }
+    th { background:#f0ebff;color:#21123c;text-align:left; }
+    tr:nth-child(even) td { background:#fbfbfe; }
+    code { background:#f0eff8;color:#311064;padding:2px 5px;border-radius:5px;font-size:.92em; }
+    pre { background:#111118;color:#f7f7fb;border-radius:12px;padding:16px;overflow-x:auto;font-size:12px;line-height:1.5;page-break-inside:avoid; }
+    pre code { background:transparent;color:inherit;padding:0; }
+    ul,ol { padding-left:22px;margin-top:8px;margin-bottom:16px; }
+    li { margin:5px 0; }
+    .meta { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px; }
+    .pill { border:1px solid var(--border);border-radius:999px;padding:9px 12px;background:#fff;color:var(--muted);font-size:12px;font-weight:700;text-align:center; }
+    .footer { margin-top:44px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:12px; }
+    @media print { body { font-size:12.5px; } .page { max-width:none;padding:0; } .hero { border-radius:14px;padding:24px; } h1 { font-size:34px; } h2,h3 { break-after:avoid; } table,pre { break-inside:avoid; } }
   </style>
 </head>
 <body>
@@ -79,11 +38,7 @@
       <div class="eyebrow">Upwork Portfolio Case Study</div>
       <h1>DocMind - Custom RAG Chatbot Builder for Websites</h1>
       <p>Full-stack AI application covering Next.js, FastAPI, Supabase, RAG retrieval, multi-provider LLM integration, embeddable JavaScript widget, testing, and deployment readiness.</p>
-      <div class="meta">
-        <div class="pill">Full-stack AI</div>
-        <div class="pill">RAG chatbot</div>
-        <div class="pill">Embeddable widget</div>
-      </div>
+      <div class="meta"><div class="pill">Full-stack AI</div><div class="pill">RAG chatbot</div><div class="pill">Embeddable widget</div></div>
     </section>
     <p>DocMind is a full-stack AI application that lets website owners build a custom RAG chatbot from their own website knowledge. The user provides website details through PDFs, docs, policies, FAQs, product information, or service information, connects an LLM provider, and receives an embeddable chatbot widget that can be added to any website with one script tag.</p>
 <p>This project demonstrates end-to-end AI product development: frontend UI, backend APIs, document processing, embeddings, vector retrieval, reranking, LLM integration, dashboard management, embeddable JavaScript widget, testing, and free-tier deployment readiness.</p>
@@ -152,7 +107,7 @@
 <li>Copy one script tag.</li>
 <li>Embed the chatbot on the website.</li>
 </ol>
-<p>The chatbot should answer using the uploaded knowledge, remember conversation context, warn when confidence is low, and work from any website after deployment.</p>
+<p>The chatbot should answer using the uploaded knowledge, remember conversation context, respond clearly when a question is outside the uploaded business details, and work from any website after deployment.</p>
 <h2 id="the-solution">The Solution</h2>
 <p>DocMind provides a complete RAG chatbot creation workflow. It is not only a chat interface. It is a builder that creates a project, processes website knowledge, generates embeddings, stores searchable chunks, connects to an LLM provider, and produces an embeddable widget.</p>
 <p>The finished system has three major parts:</p>
@@ -248,6 +203,7 @@
 <li>Loads previous history</li>
 <li>Sends messages to <code>/api/chat</code></li>
 <li>Uses scoped <code>.docmind-</code> CSS so it does not conflict with the host website</li>
+<li>Shows a preview-only welcome message when no history exists and removes it before the first real user message</li>
 </ul>
 <p>For real websites, the backend must be online because the website loads <code>widget.js</code> and sends chat requests to the deployed API.</p>
 <h2 id="system-architecture">System Architecture</h2>
@@ -478,7 +434,7 @@ RAG Pipeline + Supabase + LLM Provider
 <h3 id="confidence-scoring">Confidence Scoring</h3>
 <p>The system calculates a normalized confidence score from reranking results.</p>
 <h3 id="low-confidence-handling">Low-Confidence Handling</h3>
-<p>If the score is below the configured threshold, DocMind logs the query and prepends a warning message instead of pretending the answer is fully reliable.</p>
+<p>If the score is below the configured threshold, DocMind logs the query and gives a business-friendly fallback. Instead of saying "I am not confident", the assistant says it could not find related information in the business details and invites the visitor to ask about the business, products, services, policies, or uploaded information.</p>
 <h2 id="llm-provider-support">LLM Provider Support</h2>
 <p>The backend uses an LLM provider abstraction so different providers can be connected without rewriting the RAG pipeline.</p>
 <p>Implemented providers:</p>
@@ -557,6 +513,7 @@ RAG Pipeline + Supabase + LLM Provider
 <li>Dynamic API origin detection</li>
 <li>Public project config loading</li>
 <li>Chat history loading</li>
+<li>Preview-only welcome message that is not saved as chat history</li>
 <li>Works from a deployed backend URL</li>
 </ul>
 <h2 id="testing-and-quality-assurance">Testing and Quality Assurance</h2>
@@ -638,6 +595,7 @@ make test-all
 <li><code>.env</code> is ignored by git.</li>
 <li><code>.env.example</code> provides safe placeholders.</li>
 <li>Widget public config does not return the stored API key.</li>
+<li>Local fallback project storage strips API keys before writing to disk.</li>
 <li>CORS is enabled so the widget can work on external domains.</li>
 <li>Generated runtime files, vector indexes, build folders, logs, caches, and local environment files are ignored.</li>
 </ul>
