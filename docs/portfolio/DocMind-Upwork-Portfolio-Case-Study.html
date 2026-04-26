@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DocMind Upwork Portfolio Case Study</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    :root {
+      --ink: #111118;
+      --muted: #565b6a;
+      --border: #dfe3ee;
+      --soft: #f7f7fb;
+      --accent: #7c2cff;
+      --accent-dark: #4b12ba;
+      --cyan: #09b8d8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      line-height: 1.58;
+      font-size: 14px;
+    }
+    .page { max-width: 980px; margin: 0 auto; padding: 42px 28px 64px; }
+    .hero {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 34px;
+      background:
+        radial-gradient(circle at top right, rgba(124, 44, 255, 0.16), transparent 32%),
+        linear-gradient(135deg, #ffffff 0%, #fbfbff 100%);
+      margin-bottom: 28px;
+    }
+    .eyebrow { color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
+    h1 { margin: 8px 0 12px; font-size: 42px; line-height: 1.04; letter-spacing: -0.02em; }
+    h2 { margin: 34px 0 12px; font-size: 24px; line-height: 1.2; border-top: 1px solid var(--border); padding-top: 22px; }
+    h3 { margin: 24px 0 8px; font-size: 18px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--accent-dark); }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 22px; font-size: 13px; page-break-inside: avoid; }
+    th, td { border: 1px solid var(--border); padding: 9px 10px; vertical-align: top; }
+    th { background: #f0ebff; color: #21123c; text-align: left; }
+    tr:nth-child(even) td { background: #fbfbfe; }
+    code { background: #f0eff8; color: #311064; padding: 2px 5px; border-radius: 5px; font-size: 0.92em; }
+    pre {
+      background: #111118;
+      color: #f7f7fb;
+      border-radius: 12px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.5;
+      page-break-inside: avoid;
+    }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    ul, ol { padding-left: 22px; margin-top: 8px; margin-bottom: 16px; }
+    li { margin: 5px 0; }
+    blockquote { border-left: 4px solid var(--accent); margin: 16px 0; padding: 8px 16px; background: var(--soft); }
+    .meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 22px; }
+    .pill { border: 1px solid var(--border); border-radius: 999px; padding: 9px 12px; background: #fff; color: var(--muted); font-size: 12px; font-weight: 700; text-align: center; }
+    .footer { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+    @media print {
+      body { font-size: 12.5px; }
+      .page { max-width: none; padding: 0; }
+      .hero { border-radius: 14px; padding: 24px; }
+      h1 { font-size: 34px; }
+      h2 { break-after: avoid; }
+      h3 { break-after: avoid; }
+      table, pre { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Upwork Portfolio Case Study</div>
+      <h1>DocMind - Custom RAG Chatbot Builder for Websites</h1>
+      <p>Full-stack AI application covering Next.js, FastAPI, Supabase, RAG retrieval, multi-provider LLM integration, embeddable JavaScript widget, testing, and deployment readiness.</p>
+      <div class="meta">
+        <div class="pill">Full-stack AI</div>
+        <div class="pill">RAG chatbot</div>
+        <div class="pill">Embeddable widget</div>
+      </div>
+    </section>
+    <p>DocMind is a full-stack AI application that lets website owners build a custom RAG chatbot from their own website knowledge. The user provides website details through PDFs, docs, policies, FAQs, product information, or service information, connects an LLM provider, and receives an embeddable chatbot widget that can be added to any website with one script tag.</p>
+<p>This project demonstrates end-to-end AI product development: frontend UI, backend APIs, document processing, embeddings, vector retrieval, reranking, LLM integration, dashboard management, embeddable JavaScript widget, testing, and free-tier deployment readiness.</p>
+<h2 id="project-snapshot">Project Snapshot</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Project name</td>
+<td>DocMind</td>
+</tr>
+<tr>
+<td>Project type</td>
+<td>Full-stack AI SaaS prototype / RAG chatbot builder</td>
+</tr>
+<tr>
+<td>Main use case</td>
+<td>Create a website-specific chatbot from uploaded knowledge files</td>
+</tr>
+<tr>
+<td>Target users</td>
+<td>Website owners, SaaS teams, agencies, support teams, small businesses</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>Next.js, React, TypeScript, Tailwind CSS</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>FastAPI, Python, Pydantic, Uvicorn</td>
+</tr>
+<tr>
+<td>AI/RAG</td>
+<td>SentenceTransformers, semantic search, reranking, LLM provider abstraction</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>Supabase PostgreSQL</td>
+</tr>
+<tr>
+<td>Widget</td>
+<td>Vanilla JavaScript embed served from FastAPI</td>
+</tr>
+<tr>
+<td>Deployment target</td>
+<td>Railway for backend, Vercel for frontend</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td>Pytest, Jest, Vitest, React Testing Library, Playwright</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-problem">The Problem</h2>
+<p>Many businesses have useful information scattered across website pages, PDF guides, FAQ documents, product notes, service descriptions, and support policies. Visitors often cannot find the right answer quickly, while businesses do not want to manually build and maintain a custom support chatbot from scratch.</p>
+<p>The goal of DocMind is to solve this by giving a business a simple workflow:</p>
+<ol>
+<li>Describe the chatbot and its boundaries.</li>
+<li>Upload the website knowledge files.</li>
+<li>Choose the AI model provider and model.</li>
+<li>Copy one script tag.</li>
+<li>Embed the chatbot on the website.</li>
+</ol>
+<p>The chatbot should answer using the uploaded knowledge, remember conversation context, warn when confidence is low, and work from any website after deployment.</p>
+<h2 id="the-solution">The Solution</h2>
+<p>DocMind provides a complete RAG chatbot creation workflow. It is not only a chat interface. It is a builder that creates a project, processes website knowledge, generates embeddings, stores searchable chunks, connects to an LLM provider, and produces an embeddable widget.</p>
+<p>The finished system has three major parts:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Next.js web app</td>
+<td>Landing page, guided setup flow, dashboard, live preview, copy embed code</td>
+</tr>
+<tr>
+<td>FastAPI backend</td>
+<td>Project API, upload API, chat API, history API, widget serving, health checks</td>
+</tr>
+<tr>
+<td>Widget.js</td>
+<td>Lightweight embeddable chatbot that works on external websites</td>
+</tr>
+</tbody>
+</table>
+<h2 id="core-user-journey">Core User Journey</h2>
+<h3 id="1-landing-page">1. Landing Page</h3>
+<p>The landing page explains DocMind as a custom RAG website assistant builder. It uses a modern portfolio-style design with dark/light theme support, clear calls to action, and a visual flow showing:</p>
+<pre><code class="language-text">Website PDF -&gt; RAG Index -&gt; Model Provider -&gt; Site Widget
+</code></pre>
+<p>The page links users to:</p>
+<ul>
+<li>Setup flow</li>
+<li>Dashboard</li>
+<li>How the system works</li>
+</ul>
+<h3 id="2-guided-setup">2. Guided Setup</h3>
+<p>The setup page has a three-step workflow:</p>
+<pre><code class="language-text">Configure -&gt; Upload -&gt; Embed
+</code></pre>
+<p>Step 1 captures:</p>
+<ul>
+<li>Bot name</li>
+<li>Website knowledge description</li>
+<li>Tone</li>
+<li>Restricted topics</li>
+<li>AI provider</li>
+<li>Model name</li>
+<li>API key</li>
+</ul>
+<p>Step 2 handles:</p>
+<ul>
+<li>PDF upload</li>
+<li>TXT upload</li>
+<li>DOCX upload</li>
+<li>Drag-and-drop file input</li>
+<li>Upload progress</li>
+<li>Chunk count after successful processing</li>
+<li>Multiple file uploads</li>
+</ul>
+<p>Step 3 provides:</p>
+<ul>
+<li>Generated widget script tag</li>
+<li>Inline copy button</li>
+<li>Main "Copy to clipboard" button</li>
+<li>Live chatbot preview</li>
+<li>Link to dashboard</li>
+</ul>
+<h3 id="3-dashboard">3. Dashboard</h3>
+<p>The dashboard is the operational hub. It connects to the real backend and provides:</p>
+<ul>
+<li>Project list from Supabase</li>
+<li>Project selection</li>
+<li>Refresh action</li>
+<li>Copy embed code per project</li>
+<li>Delete project without page refresh</li>
+<li>Live chatbot preview in a simulated website</li>
+<li>Empty state linking to setup</li>
+</ul>
+<p>The dashboard was designed to be scannable and practical rather than decorative. The project list is compact, while the live chatbot preview has more room for real testing.</p>
+<h3 id="4-widget-embed">4. Widget Embed</h3>
+<p>After setup, the user receives a script tag:</p>
+<pre><code class="language-html">&lt;script src=&quot;https://your-railway-api.up.railway.app/widget.js?id=PROJECT_ID&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>The widget:</p>
+<ul>
+<li>Loads from the FastAPI backend</li>
+<li>Reads the project ID from the script URL</li>
+<li>Detects API origin from the script source</li>
+<li>Does not rely on hardcoded localhost URLs</li>
+<li>Opens as a floating chat button</li>
+<li>Loads public widget configuration</li>
+<li>Loads previous history</li>
+<li>Sends messages to <code>/api/chat</code></li>
+<li>Uses scoped <code>.docmind-</code> CSS so it does not conflict with the host website</li>
+</ul>
+<p>For real websites, the backend must be online because the website loads <code>widget.js</code> and sends chat requests to the deployed API.</p>
+<h2 id="system-architecture">System Architecture</h2>
+<pre><code class="language-text">Website Owner
+  |
+  v
+Next.js Frontend
+  |
+  |-- Landing page
+  |-- Setup flow
+  |-- Dashboard
+  |
+  v
+FastAPI Backend
+  |
+  |-- Project endpoints
+  |-- Upload endpoint
+  |-- Chat endpoint
+  |-- History endpoint
+  |-- Widget serving endpoint
+  |-- Health endpoint
+  |
+  v
+RAG Pipeline
+  |
+  |-- Parse PDF/TXT/DOCX
+  |-- Sentence-aware chunking
+  |-- Generate embeddings
+  |-- Store vectors
+  |-- Retrieve candidate chunks
+  |-- Rerank with cross-encoder
+  |-- Rewrite follow-up queries
+  |-- Generate answer with selected LLM
+  |-- Score confidence
+  |
+  v
+Supabase
+  |
+  |-- project_config
+  |-- messages
+  |-- conversation_summaries
+  |-- low_confidence_queries
+
+
+External Website
+  |
+  v
+widget.js
+  |
+  v
+FastAPI /api/chat
+  |
+  v
+RAG Pipeline + Supabase + LLM Provider
+</code></pre>
+<h2 id="how-the-system-works-internally">How the System Works Internally</h2>
+<h3 id="project-creation-flow">Project Creation Flow</h3>
+<ol>
+<li>User fills out Step 1 in the Next.js setup page.</li>
+<li>Frontend calls <code>POST /api/projects</code>.</li>
+<li>Backend validates the request with Pydantic models.</li>
+<li>Backend creates a project ID.</li>
+<li>Project configuration is stored in Supabase <code>project_config</code>.</li>
+<li>Frontend stores the project ID in <code>localStorage</code>.</li>
+<li>Setup flow moves to document upload.</li>
+</ol>
+<h3 id="document-upload-flow">Document Upload Flow</h3>
+<ol>
+<li>User uploads a PDF, TXT, or DOCX file.</li>
+<li>Frontend sends <code>multipart/form-data</code> to <code>POST /api/upload</code>.</li>
+<li>Backend reads file bytes and passes them into the document processor.</li>
+<li>Document processor extracts text:</li>
+<li>PDF through PyMuPDF</li>
+<li>TXT through text decoding</li>
+<li>DOCX through ZIP/XML parsing</li>
+<li>Text is split into sentence-aware chunks with overlap.</li>
+<li>Each chunk receives metadata:</li>
+<li>filename</li>
+<li>chunk index</li>
+<li>total chunks</li>
+<li>Embeddings are generated with SentenceTransformers.</li>
+<li>Chunks and embeddings are saved to the selected vector store.</li>
+<li>Backend returns chunk count and filename.</li>
+<li>Frontend shows the successful upload and chunk count.</li>
+</ol>
+<h3 id="chat-flow">Chat Flow</h3>
+<ol>
+<li>Visitor types a message in the widget or preview.</li>
+<li>Widget sends a request to <code>POST /api/chat</code>.</li>
+<li>Backend loads project configuration.</li>
+<li>Backend resolves provider, model, and API key.</li>
+<li>Query may be rewritten using recent conversation context.</li>
+<li>Query embedding is generated.</li>
+<li>Initial semantic search retrieves candidate chunks.</li>
+<li>Cross-encoder reranks the candidates.</li>
+<li>Top chunks are passed into the LLM as context.</li>
+<li>LLM generates the answer.</li>
+<li>Confidence score is calculated.</li>
+<li>Low-confidence queries are logged when needed.</li>
+<li>User and assistant messages are saved to Supabase.</li>
+<li>Widget displays the answer.</li>
+</ol>
+<h3 id="widget-flow">Widget Flow</h3>
+<ol>
+<li>Website loads the script from the deployed FastAPI backend.</li>
+<li>Widget reads the project ID from <code>?id=PROJECT_ID</code>.</li>
+<li>Widget detects API base URL from the script origin.</li>
+<li>Widget injects isolated CSS and UI elements.</li>
+<li>User clicks the floating button.</li>
+<li>Widget loads public project config and history.</li>
+<li>User sends a message.</li>
+<li>Widget calls <code>/api/chat</code>.</li>
+<li>Assistant response appears in the chat panel.</li>
+</ol>
+<h3 id="delete-project-flow">Delete Project Flow</h3>
+<ol>
+<li>User clicks delete in the dashboard.</li>
+<li>Frontend calls <code>DELETE /api/projects/{project_id}</code>.</li>
+<li>Backend deletes project config.</li>
+<li>Backend deletes related messages when available.</li>
+<li>Frontend removes the project from the dashboard state without page refresh.</li>
+</ol>
+<h2 id="backend-api-summary">Backend API Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/health</code></td>
+<td>GET</td>
+<td>Health check for Railway deployment</td>
+</tr>
+<tr>
+<td><code>/</code></td>
+<td>GET</td>
+<td>Root endpoint with API metadata</td>
+</tr>
+<tr>
+<td><code>/api/projects</code></td>
+<td>POST</td>
+<td>Create chatbot project</td>
+</tr>
+<tr>
+<td><code>/api/projects</code></td>
+<td>GET</td>
+<td>List all chatbot projects</td>
+</tr>
+<tr>
+<td><code>/api/projects/{project_id}</code></td>
+<td>DELETE</td>
+<td>Delete a project</td>
+</tr>
+<tr>
+<td><code>/api/projects/{project_id}/widget-config</code></td>
+<td>GET</td>
+<td>Return public widget configuration</td>
+</tr>
+<tr>
+<td><code>/api/upload</code></td>
+<td>POST</td>
+<td>Upload and process knowledge file</td>
+</tr>
+<tr>
+<td><code>/api/chat</code></td>
+<td>POST</td>
+<td>Ask a question through the RAG pipeline</td>
+</tr>
+<tr>
+<td><code>/api/history/{project_id}</code></td>
+<td>GET</td>
+<td>Load chat history</td>
+</tr>
+<tr>
+<td><code>/widget.js</code></td>
+<td>GET</td>
+<td>Serve embeddable widget script</td>
+</tr>
+</tbody>
+</table>
+<h2 id="database-design">Database Design</h2>
+<p>Supabase stores the project configuration, document chunks, chat messages, conversation memory, and low-confidence logs.</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>project_config</code></td>
+<td>Stores chatbot setup details such as name, description, tone, restrictions, provider, model, and API key</td>
+</tr>
+<tr>
+<td><code>messages</code></td>
+<td>Stores document chunks, embeddings, chunk metadata, user messages, assistant messages, and timestamps</td>
+</tr>
+<tr>
+<td><code>conversation_summaries</code></td>
+<td>Stores compressed memory for long conversations</td>
+</tr>
+<tr>
+<td><code>low_confidence_queries</code></td>
+<td>Stores questions where retrieval confidence is low</td>
+</tr>
+</tbody>
+</table>
+<h2 id="rag-features-built">RAG Features Built</h2>
+<h3 id="sentence-aware-chunking">Sentence-Aware Chunking</h3>
+<p>Instead of splitting documents at random character counts, DocMind uses spaCy sentence boundaries. This keeps chunks readable and improves retrieval quality.</p>
+<h3 id="chunk-overlap">Chunk Overlap</h3>
+<p>Chunks include overlap from nearby sentences so information is not lost at boundaries.</p>
+<h3 id="metadata-storage">Metadata Storage</h3>
+<p>Each chunk stores useful metadata such as source filename, chunk index, and total chunks. This makes the system easier to debug and extend.</p>
+<h3 id="semantic-search">Semantic Search</h3>
+<p>The query is embedded and compared against stored document embeddings using cosine similarity.</p>
+<h3 id="cross-encoder-reranking">Cross-Encoder Reranking</h3>
+<p>After initial retrieval, a cross-encoder reranks the candidate chunks to improve relevance before the answer is generated.</p>
+<h3 id="query-rewriting">Query Rewriting</h3>
+<p>Follow-up questions like "What about that?" can be rewritten using recent chat history so retrieval has enough context.</p>
+<h3 id="conversation-summaries">Conversation Summaries</h3>
+<p>For longer chats, the system can use stored summaries instead of sending the full conversation history each time.</p>
+<h3 id="confidence-scoring">Confidence Scoring</h3>
+<p>The system calculates a normalized confidence score from reranking results.</p>
+<h3 id="low-confidence-handling">Low-Confidence Handling</h3>
+<p>If the score is below the configured threshold, DocMind logs the query and prepends a warning message instead of pretending the answer is fully reliable.</p>
+<h2 id="llm-provider-support">LLM Provider Support</h2>
+<p>The backend uses an LLM provider abstraction so different providers can be connected without rewriting the RAG pipeline.</p>
+<p>Implemented providers:</p>
+<ul>
+<li>Gemini</li>
+<li>OpenAI</li>
+<li>Groq</li>
+</ul>
+<p>The UI can mention Claude as a provider-family target, but the backend currently needs an Anthropic provider class before Claude can be claimed as fully implemented.</p>
+<h2 id="vector-store-support">Vector Store Support</h2>
+<p>DocMind includes a vector store abstraction with three implementations:</p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Supabase</td>
+<td>Default backend and easiest deployment option</td>
+</tr>
+<tr>
+<td>FAISS</td>
+<td>Local vector index persistence</td>
+</tr>
+<tr>
+<td>ChromaDB</td>
+<td>Local persistent vector database</td>
+</tr>
+</tbody>
+</table>
+<p>The selected backend is controlled by <code>VECTOR_STORE_BACKEND</code>.</p>
+<h2 id="frontend-features">Frontend Features</h2>
+<h3 id="professional-landing-page">Professional Landing Page</h3>
+<p>The landing page was redesigned from a basic template into a polished portfolio-quality product page with:</p>
+<ul>
+<li>Clear product message</li>
+<li>RAG pipeline visual</li>
+<li>Strong CTA buttons</li>
+<li>Dark/light theme support</li>
+<li>Responsive layout</li>
+<li>Hamburger navigation overlay</li>
+<li>Professional footer</li>
+</ul>
+<h3 id="guided-setup-ux">Guided Setup UX</h3>
+<p>The setup page keeps the user inside one clear workflow. It shows progress and only unlocks the next step after the current step is complete.</p>
+<h3 id="toast-error-handling">Toast Error Handling</h3>
+<p>API errors are surfaced with toast notifications so failures are visible to the user.</p>
+<h3 id="responsive-design">Responsive Design</h3>
+<p>The UI was checked for mobile and desktop sizes, including 375px and 1440px layouts.</p>
+<h3 id="dashboard-ux">Dashboard UX</h3>
+<p>The dashboard focuses on real operations:</p>
+<ul>
+<li>Project list</li>
+<li>Live preview</li>
+<li>Copy embed</li>
+<li>Delete project</li>
+<li>Refresh state</li>
+<li>Empty state</li>
+</ul>
+<h2 id="widget-features">Widget Features</h2>
+<p>The embeddable widget is built in plain JavaScript so it can run on any normal website without React, Next.js, or external CSS.</p>
+<p>Widget capabilities:</p>
+<ul>
+<li>Floating launcher button</li>
+<li>Chat panel</li>
+<li>Close button</li>
+<li>Message input</li>
+<li>Enter key send</li>
+<li>Loading indicator</li>
+<li>Markdown rendering for assistant messages</li>
+<li>Friendly error messages</li>
+<li>Scoped CSS</li>
+<li>Dynamic API origin detection</li>
+<li>Public project config loading</li>
+<li>Chat history loading</li>
+<li>Works from a deployed backend URL</li>
+</ul>
+<h2 id="testing-and-quality-assurance">Testing and Quality Assurance</h2>
+<p>The project includes tests across the backend, frontend, widget, and integration layer.</p>
+<table>
+<thead>
+<tr>
+<th>Test type</th>
+<th>Tooling</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API unit tests</td>
+<td>Pytest</td>
+<td>FastAPI endpoints, validation, CORS, health, widget serving</td>
+</tr>
+<tr>
+<td>Widget unit tests</td>
+<td>Jest</td>
+<td>Widget injection, open/close, sending, errors</td>
+</tr>
+<tr>
+<td>Frontend tests</td>
+<td>Vitest + React Testing Library</td>
+<td>Landing CTA, setup flow, upload state, copy embed, dashboard, toasts</td>
+</tr>
+<tr>
+<td>Integration tests</td>
+<td>Pytest + HTTP client</td>
+<td>Create project, upload, chat, delete</td>
+</tr>
+<tr>
+<td>Browser E2E tests</td>
+<td>Playwright</td>
+<td>Widget behavior in a real browser</td>
+</tr>
+<tr>
+<td>Type checks</td>
+<td>TypeScript</td>
+<td>Frontend type safety</td>
+</tr>
+<tr>
+<td>Linting</td>
+<td>ESLint</td>
+<td>Frontend code quality</td>
+</tr>
+</tbody>
+</table>
+<p>Makefile shortcuts were added for common checks:</p>
+<pre><code class="language-bash">make test-unit
+make test-widget
+make test-frontend
+make test-e2e
+make test-widget-e2e
+make test-all
+</code></pre>
+<p>GitHub Actions CI runs unit and frontend tests on pushes and pull requests to <code>main</code>.</p>
+<h2 id="deployment-readiness">Deployment Readiness</h2>
+<p>The project was prepared for free-tier deployment.</p>
+<h3 id="backend-on-railway">Backend on Railway</h3>
+<p>Railway uses <code>railway.json</code> with:</p>
+<pre><code class="language-bash">uvicorn api.main:app --host 0.0.0.0 --port $PORT
+</code></pre>
+<p>The backend exposes <code>/health</code> for Railway health checks.</p>
+<h3 id="frontend-on-vercel">Frontend on Vercel</h3>
+<p>The Next.js app lives in <code>docmind-web/</code> and includes <code>vercel.json</code>.</p>
+<p>Vercel requires:</p>
+<pre><code class="language-env">NEXT_PUBLIC_API_BASE=https://your-railway-api.up.railway.app
+</code></pre>
+<h3 id="widget-deployment">Widget Deployment</h3>
+<p>The widget is served from the Railway backend URL:</p>
+<pre><code class="language-html">&lt;script src=&quot;https://your-railway-api.up.railway.app/widget.js?id=PROJECT_ID&quot;&gt;&lt;/script&gt;
+</code></pre>
+<h2 id="security-and-configuration-notes">Security and Configuration Notes</h2>
+<ul>
+<li>Secrets are loaded from environment variables.</li>
+<li><code>.env</code> is ignored by git.</li>
+<li><code>.env.example</code> provides safe placeholders.</li>
+<li>Widget public config does not return the stored API key.</li>
+<li>CORS is enabled so the widget can work on external domains.</li>
+<li>Generated runtime files, vector indexes, build folders, logs, caches, and local environment files are ignored.</li>
+</ul>
+<h2 id="my-role-and-contributions">My Role and Contributions</h2>
+<p>For this project, the work included:</p>
+<ul>
+<li>Designing the complete product flow</li>
+<li>Building the FastAPI backend</li>
+<li>Creating API models and endpoint contracts</li>
+<li>Implementing RAG ingestion and retrieval logic</li>
+<li>Adding sentence-aware chunking and overlap</li>
+<li>Adding reranking and confidence handling</li>
+<li>Adding conversation memory features</li>
+<li>Adding vector store abstraction</li>
+<li>Adding multi-provider LLM abstraction</li>
+<li>Building the embeddable JavaScript widget</li>
+<li>Building the Next.js frontend</li>
+<li>Building the guided setup workflow</li>
+<li>Building the dashboard</li>
+<li>Improving UI/UX, theme support, and responsive layouts</li>
+<li>Creating deployment configuration for Railway and Vercel</li>
+<li>Writing documentation</li>
+<li>Adding automated tests and CI workflow</li>
+</ul>
+<h2 id="business-value">Business Value</h2>
+<p>DocMind demonstrates how a business can turn static website knowledge into an interactive support assistant. The value for a client is practical:</p>
+<ul>
+<li>Reduces repeated support questions</li>
+<li>Helps visitors find answers faster</li>
+<li>Can be embedded into any website</li>
+<li>Does not require rebuilding the host website</li>
+<li>Allows each chatbot to be customized per business</li>
+<li>Supports multiple LLM provider options</li>
+<li>Keeps setup simple for non-technical users</li>
+<li>Provides dashboard management for ongoing operations</li>
+</ul>
+<h2 id="technical-value">Technical Value</h2>
+<p>This project demonstrates the ability to build more than a simple chatbot UI. It includes:</p>
+<ul>
+<li>Real backend architecture</li>
+<li>Document ingestion pipeline</li>
+<li>RAG retrieval quality improvements</li>
+<li>LLM abstraction</li>
+<li>Vector store abstraction</li>
+<li>Production-style API structure</li>
+<li>Embeddable script architecture</li>
+<li>Frontend workflow design</li>
+<li>Automated testing</li>
+<li>Deployment documentation</li>
+<li>Environment/security hygiene</li>
+</ul>
+<h2 id="suggested-upwork-portfolio-summary">Suggested Upwork Portfolio Summary</h2>
+<p>DocMind is a full-stack AI RAG chatbot builder that turns website knowledge files into an embeddable chatbot. I built the Next.js frontend, FastAPI backend, document ingestion pipeline, semantic search, reranking, LLM provider abstraction, Supabase persistence, dashboard, JavaScript widget, tests, and free-tier deployment configuration. The system lets users configure a chatbot, upload PDFs/TXT/DOCX files, generate embeddings, retrieve relevant context, answer questions with an LLM, and embed the assistant on any website with one script tag.</p>
+<h2 id="suggested-upwork-skills-tags">Suggested Upwork Skills Tags</h2>
+<ul>
+<li>AI Chatbot Development</li>
+<li>Retrieval-Augmented Generation</li>
+<li>FastAPI</li>
+<li>Next.js</li>
+<li>React</li>
+<li>TypeScript</li>
+<li>Python</li>
+<li>Supabase</li>
+<li>OpenAI API</li>
+<li>Gemini API</li>
+<li>Groq API</li>
+<li>Vector Search</li>
+<li>Embeddings</li>
+<li>JavaScript Widget</li>
+<li>SaaS Development</li>
+<li>API Development</li>
+<li>Full-Stack Development</li>
+</ul>
+<h2 id="future-improvements">Future Improvements</h2>
+<p>Possible next upgrades:</p>
+<ul>
+<li>Add Anthropic Claude backend provider support</li>
+<li>Add authentication and team accounts</li>
+<li>Add source citation display in chatbot answers</li>
+<li>Add per-project analytics dashboard</li>
+<li>Add file management and re-indexing</li>
+<li>Add streaming responses</li>
+<li>Add rate limiting and abuse protection</li>
+<li>Add admin controls for provider/API key management</li>
+<li>Add hosted demo with real sample project</li>
+</ul>
+<h2 id="final-result">Final Result</h2>
+<p>DocMind is a portfolio-ready full-stack AI project that shows the complete path from idea to working product: user interface, backend APIs, RAG pipeline, database schema, embeddable widget, tests, and deployment documentation. It is a strong demonstration of practical AI engineering for real business workflows, especially for clients who want custom chatbot systems connected to their own knowledge base.</p>
+    <section class="footer">Prepared as a professional Upwork portfolio document for the DocMind project.</section>
+  </main>
+</body>
+</html>
