@@ -722,7 +722,13 @@
         // Show error message
         let errorMsg = 'Something went wrong. Please check the chatbot setup and try again.';
         if (error && error.message) {
-          if (error.message.includes('API_KEY_INVALID') || error.message.includes('API key not valid')) {
+          if (error.message.includes('reported as leaked')) {
+            errorMsg = 'The provider rejected this API key because it was reported as leaked. Revoke it, create a new key, update the chatbot setup, and try again.';
+          } else if (error.message.includes('Missing API key')) {
+            errorMsg = 'This chatbot is missing a provider API key. Add a valid key in setup or configure the provider key on the backend.';
+          } else if (error.message.includes('No relevant document context')) {
+            errorMsg = 'No searchable document content was found for this chatbot. Upload at least one website knowledge file and try again.';
+          } else if (error.message.includes('API_KEY_INVALID') || error.message.includes('API key not valid')) {
             errorMsg = 'The Gemini API key was rejected. Paste a valid key from Google AI Studio and try again.';
           } else if (error.message.includes('quota') || error.message.includes('RESOURCE_EXHAUSTED')) {
             errorMsg = 'The provider quota or rate limit was reached. Try again later or use another key.';
