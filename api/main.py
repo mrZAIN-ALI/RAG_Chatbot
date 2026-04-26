@@ -103,6 +103,8 @@ def get_last_retrieval_confidence() -> float:
         return 0.0
 
 LOCAL_PROJECT_STORE = Path("artifacts/docmind_projects.json")
+LOCAL_PROJECT_SECRET_CACHE: dict[str, dict[str, str]] = {}
+LOCAL_SECRET_KEYS = {"api_key", "apikey", "apiKey", "provider_api_key"}
 
 
 def _is_missing_project_table_error(error: Exception) -> bool:
@@ -116,26 +118,47 @@ def _read_local_projects() -> list[dict]:
     if not LOCAL_PROJECT_STORE.exists():
         return []
     try:
-        return json.loads(LOCAL_PROJECT_STORE.read_text(encoding="utf-8"))
+        projects = json.loads(LOCAL_PROJECT_STORE.read_text(encoding="utf-8"))
+        if not isinstance(projects, list):
+            return []
+        return [_sanitize_local_project(project) for project in projects if isinstance(project, dict)]
     except (json.JSONDecodeError, OSError):
         return []
+
+
+def _sanitize_local_project(project: dict) -> dict:
+    """Return a project row with secrets removed before local persistence."""
+    sanitized = {
+        key: value
+        for key, value in project.items()
+        if key not in LOCAL_SECRET_KEYS and not key.lower().endswith("_api_key")
+    }
+    return sanitized
 
 
 def _write_local_projects(projects: list[dict]) -> None:
     """Write fallback project records to the local JSON store."""
     LOCAL_PROJECT_STORE.parent.mkdir(parents=True, exist_ok=True)
-    LOCAL_PROJECT_STORE.write_text(json.dumps(projects, indent=2), encoding="utf-8")
+    sanitized_projects = [_sanitize_local_project(project) for project in projects]
+    LOCAL_PROJECT_STORE.write_text(json.dumps(sanitized_projects, indent=2), encoding="utf-8")
 
 
 def _save_local_project(project: dict) -> None:
-    """Insert or replace one fallback project in the local JSON store."""
+    """Insert or replace one fallback project without persisting secrets."""
+    project_id = project.get("project_id")
+    api_key = project.get("api_key")
+    if project_id and api_key:
+        LOCAL_PROJECT_SECRET_CACHE[str(project_id)] = {"api_key": str(api_key)}
+
+    sanitized_project = _sanitize_local_project(project)
     projects = [item for item in _read_local_projects() if item.get("project_id") != project.get("project_id")]
-    projects.insert(0, project)
+    projects.insert(0, sanitized_project)
     _write_local_projects(projects)
 
 
 def _delete_local_project(project_id: str) -> None:
     """Remove one fallback project from the local JSON store."""
+    LOCAL_PROJECT_SECRET_CACHE.pop(project_id, None)
     _write_local_projects([
         project for project in _read_local_projects()
         if project.get("project_id") != project_id
@@ -146,6 +169,9 @@ def _get_local_project_row(project_id: str) -> dict:
     """Fetch one project row from the local fallback store."""
     for project in _read_local_projects():
         if project.get("project_id") == project_id:
+            cached_secret = LOCAL_PROJECT_SECRET_CACHE.get(project_id)
+            if cached_secret:
+                return {**project, **cached_secret}
             return project
     return {}
 

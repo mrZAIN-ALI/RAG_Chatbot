@@ -29,7 +29,7 @@ function LogoMark() {
   );
 }
 
-export function AppNav({ active, ctaHref = "/setup", ctaLabel = "New chatbot" }: AppNavProps) {
+export function AppNav({ active }: AppNavProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -89,14 +89,6 @@ export function AppNav({ active, ctaHref = "/setup", ctaLabel = "New chatbot" }:
                   </Link>
                 ))}
               </div>
-
-            <Link
-              href={ctaHref}
-              onClick={() => setOpen(false)}
-                className="mt-10 inline-flex h-12 items-center justify-center rounded-[8px] bg-[color:var(--accent)] px-8 text-sm font-semibold text-white shadow-[var(--shadow-soft)] transition hover:bg-[color:var(--foreground)] hover:text-[color:var(--background)]"
-            >
-              {ctaLabel}
-            </Link>
             </div>
           </div>
         </div>
